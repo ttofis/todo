@@ -12,7 +12,7 @@
 	let logo = true;
 
 	onMount(() => {
-		setTimeout(() => {logo = false}, 3000);
+		setTimeout(() => {logo = false}, 1000);
 	});
 </script>
 

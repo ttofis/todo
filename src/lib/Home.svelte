@@ -109,7 +109,7 @@
         pb.collection(Collections.Tasks).unsubscribe("*");
     })
     onMount(() => {
-        getData();
+        if ($currentUser) getData();
     })
 </script>
 
