@@ -5,7 +5,8 @@ import { redirect } from "@sveltejs/kit";
 import { browser } from "$app/environment";
 import { error } from "@sveltejs/kit";
 
-export const load = (async ( url ) => {
+export const load = (( url ) => {
+    console.log(url.url.toString());
     if (isSignInWithEmailLink(auth, url.url.toString()) && browser) {
         let email = window.localStorage.getItem('emailForSignIn');
         while (!email) {
@@ -19,4 +20,5 @@ export const load = (async ( url ) => {
             throw error(500, err.message);
         });
     }
+    return;
 }) satisfies PageLoad;

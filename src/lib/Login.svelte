@@ -10,14 +10,14 @@
     let disabled = false;
 
     const actionCodeSettings = {
-        url: "https://firebase--todo-chrisch.netlify.app/",
+        url: "https://todo.chrisch.dev",
         handleCodeInApp: true
     }
 
-    async function handleLogin() {
+    function handleLogin() {
         if (validateEmail(email)) {
             disabled = true;
-            await sendSignInLinkToEmail(auth, email, actionCodeSettings)
+            sendSignInLinkToEmail(auth, email, actionCodeSettings)
             .then(() => {
                 window.localStorage.setItem('emailForSignIn', email);
                 triggerToast("Success! Check your email", 'variant-filled-secondary');
