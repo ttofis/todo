@@ -5,9 +5,9 @@
   	import Home from "$lib/Home.svelte";
 	import GetName from "$lib/GetName.svelte";
 	import "@fontsource/allura";
-  	import { page, pageHome } from "$lib/page";
+  	import { page, updatePage } from "$lib/page";
   	import { onMount } from "svelte";
-  	import ForgotPassword from "$lib/ForgotPassword.svelte";
+  	import { currentUser } from "$lib/firebase";
 
 	let logo = true;
 
@@ -28,17 +28,12 @@
 		</div>
 	{:else if $page === "home"}
 		<div in:fade={{delay:600, duration: 600}} out:fade={{duration: 500}} class="absolute top-0 bottom-0 h-screen flex flex-col">
-			<button class="unstyled w-full" on:click={pageHome}><h1 class="unstyled text-7xl h-auto mt-2 todo text-center">Todo</h1></button>
+			<button class="unstyled w-full" on:click={() => {updatePage($currentUser)}}><h1 class="unstyled text-7xl h-auto mt-2 todo text-center">Todo</h1></button>
 			<Home />
-		</div>
-	{:else if $page === "forgotPassword"}
-		<div in:fade={{delay:600, duration: 600}} out:fade={{duration: 500}} class="absolute mx-10">
-			<button class="unstyled w-full" on:click={pageHome}><h1 class="unstyled text-7xl h-auto mt-2 todo text-center">Todo</h1></button>
-			<ForgotPassword />
 		</div>
 	{:else}
 		<div in:fade={{delay:600, duration: 600}} out:fade={{duration: 500}} class="absolute mx-10">
-			<button class="unstyled w-full" on:click={pageHome}><h1 class="unstyled text-7xl h-auto mt-2 todo text-center">Todo</h1></button>
+			<button class="unstyled w-full" on:click={() => {updatePage($currentUser)}}><h1 class="unstyled text-7xl h-auto mt-2 todo text-center">Todo</h1></button>
 			<Login />
 		</div>
 	{/if}

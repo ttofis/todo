@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { currentUser, pb } from "$lib/pocketbase";
-    import type { Record } from "pocketbase";
     import type { ToastSettings } from "@skeletonlabs/skeleton";
     import { toastStore } from '@skeletonlabs/skeleton';
-    import { Collections } from "$lib/types/pocketbase-types";
+    import { currentUser, db } from "$lib/firebase";
+    import { doc, setDoc, addDoc, collection } from "firebase/firestore"; 
+    import { updatePage } from "$lib/page";
 
     let promise: Promise<void> | null;
     let name: string;
@@ -33,17 +33,17 @@
     }
 
     async function setName() {
-        const data = {
-            "name": name,
-        };
-        if ($currentUser) {
-            const data2 = {
-                "group_name": "Tasks",
-                "author": $currentUser.id
-            };
-            await pb.collection(Collections.TaskGroups).create(data2);
-            await pb.collection(Collections.Users).update($currentUser.id, data);
+        if (!$currentUser) {
+            return;
         }
+        await setDoc(doc(db, "users", $currentUser.uid), {
+            name: name,
+        })
+        await addDoc(collection(db, "users", $currentUser.uid, "task_groups"), {
+            name: "Tasks",
+            tasks: []
+        })
+        updatePage($currentUser);
     }
 </script>
 

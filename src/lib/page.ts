@@ -1,33 +1,28 @@
 import { writable } from "svelte/store";
-import { currentUser } from "./pocketbase";
+import { currentUser, db } from "$lib/firebase";
+import { doc, getDoc } from "@firebase/firestore";
+import type { User } from "firebase/auth";
 
 export const page = writable("login");
-let loggedIn = false;
 
-currentUser.subscribe((status) => {
-    if (status) {
-        loggedIn = true;
-        if (status.name === '') {
-            page.set("getName");
-        }else{
-            page.set("home");
-        }
-    }else{
-        loggedIn = false;
-        page.set("login");
-    }
+currentUser.subscribe(async (status) => {
+    updatePage(status);
 })
 
-export function pageForgotPassword() {
-    if (!loggedIn) {
-        page.set("forgotPassword");
-    }
-}
-
-export function pageHome() {
-    if (!loggedIn) {
-        page.set("login");
+export async function updatePage(status: User | null) {
+    if (status) {
+        const docRef = doc(db, "users", status.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            if (docSnap.get("name") === "") {
+                page.set("getName");
+            }else{
+                page.set("home");
+            }
+        }else{
+            page.set("getName");
+        }
     }else{
-        page.set("home");
+        page.set("login");
     }
 }

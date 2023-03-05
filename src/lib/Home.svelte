@@ -1,4 +1,7 @@
 <script lang="ts">
+    import { logout } from "./firebase";
+</script>
+<!--<script lang="ts">
     import { currentUser, logout, pb } from "$lib/pocketbase";
     import { Collections } from "$lib/types/pocketbase-types";
     import type { TaskGroupResponse, TaskResponse } from "$lib/types/pocketbase-types";
@@ -135,3 +138,6 @@
         {/if}
     </div>
 </div>
+-->
+<h1>We've made it!</h1>
+<button class="btn variant-filled-error" on:click={logout}>Logout</button>
