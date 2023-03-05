@@ -2,7 +2,6 @@
     import { validateEmail } from "$lib/validateEmail";
     import { triggerToast } from "$lib/triggerToast";
     import { GoogleAuthProvider, signInWithPopup, sendSignInLinkToEmail } from "firebase/auth";
-    import { error } from "@sveltejs/kit";
     import { auth } from "$lib/firebase";
     
     const provider = new GoogleAuthProvider();
@@ -11,7 +10,7 @@
     let disabled = false;
 
     const actionCodeSettings = {
-        url: "https://todo.chrisch.dev/login",
+        url: "https://firebase--todo-chrisch.netlify.app/",
         handleCodeInApp: true
     }
 
@@ -52,13 +51,7 @@
 
     function handleLoginGoogle() {
         signInWithPopup(auth, provider)
-        .then((result) => {
-            //const credential = GoogleAuthProvider.credentialFromResult(result);
-            //if (!credential) {
-            //    throw error(500, "Something went wrong");
-            //}
-            //const token = credential.accessToken;
-        }).catch((err) => {
+        .catch((err) => {
             triggerToast("Something went wrong, please try again", 'variant-filled-warning');
             console.log(err);
         });
