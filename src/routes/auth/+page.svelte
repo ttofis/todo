@@ -6,8 +6,10 @@
     import { goto } from "$app/navigation";
 
     export let data: PageData;
-
-    goto("/"); // For now
+    
+    if (browser) {
+        goto("/"); // For now
+    }
 
     if (isSignInWithEmailLink(auth, data.url) && browser) {
         let email = window.localStorage.getItem('emailForSignIn');
