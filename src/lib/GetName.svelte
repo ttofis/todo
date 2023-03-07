@@ -2,7 +2,7 @@
     import type { ToastSettings } from "@skeletonlabs/skeleton";
     import { toastStore } from '@skeletonlabs/skeleton';
     import { currentUser, db } from "$lib/firebase";
-    import { doc, setDoc, addDoc, collection } from "firebase/firestore"; 
+    import { doc, setDoc, addDoc, collection, updateDoc } from "firebase/firestore"; 
     import { updatePage } from "$lib/page";
 
     let promise: Promise<void> | null;
@@ -38,18 +38,25 @@
         }
         await setDoc(doc(db, "users", $currentUser.uid), {
             name: name,
+            group_list: []
         })
-        await addDoc(collection(db, "users", $currentUser.uid, "task_groups"), {
+        const docRef = await addDoc(collection(db, "users", $currentUser.uid, "task_groups"), {
             name: "Tasks",
             tasks: []
         })
+        await updateDoc(doc(db, "users", $currentUser.uid), {
+            group_list: [docRef.id]
+        })
+
         updatePage($currentUser);
     }
 </script>
 
+<div class="mx-5 text-center">
 <h2>Welcome! Glad you joined</h2>
 <h2>How should we call you?</h2>
-<form class="mt-2 w-full flex flex-col gap-3" on:submit|preventDefault>
+<form class="mt-2 w-full max-w-md flex flex-col gap-3" on:submit|preventDefault>
     <input class="input" type="text" placeholder="name" minlength="1" bind:value={name} required />
     <button disabled={disabled} class="btn variant-glass-secondary" on:click={handle}>Submit</button>
 </form>
+</div>

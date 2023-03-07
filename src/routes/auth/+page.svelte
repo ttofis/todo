@@ -7,6 +7,8 @@
 
     export let data: PageData;
 
+    goto("/"); // For now
+
     if (isSignInWithEmailLink(auth, data.url) && browser) {
         let email = window.localStorage.getItem('emailForSignIn');
         while (!email) {

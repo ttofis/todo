@@ -2,13 +2,13 @@
 	import "@fontsource/allura";
 </script>
 
-<svg height="100%" stroke="#FFFFFF" stroke-width="1" class="text-line" width="100%"><text x="50%" dominant-baseline="middle" text-anchor="middle" y="50%">Todo</text></svg>
+<svg stroke="#FFFFFF" stroke-width="1" class="text-line h-20" width="100%"><text x="50%" dominant-baseline="middle" text-anchor="middle" y="70%">Todo</text></svg>
 
 <style>
 	.text-line {
 		stroke-dasharray: 500;
 		stroke-dashoffset: 500;
-		animation: dash 1.5s ease-in forwards, filling 1.5s ease-in forwards;
+		animation: dash 3s ease-in forwards, filling 3s ease-in forwards;
 		font-size: 80px;
 	}
 
@@ -25,7 +25,7 @@
 	}
 
 	@keyframes filling {
-		0%, 90% { fill: #FFFFFF; fill-opacity: 0; }
-		100% { fill: #FFFFFF; fill-opacity: 1; }
+		0%, 90% { fill: rgba(var(--color-tertiary-50)); fill-opacity: 0; }
+		100% { fill: rgba(var(--color-tertiary-50)); fill-opacity: 1; }
 	}
 </style>

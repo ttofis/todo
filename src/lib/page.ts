@@ -3,7 +3,7 @@ import { currentUser, db } from "$lib/firebase";
 import { doc, getDoc } from "@firebase/firestore";
 import type { User } from "firebase/auth";
 
-export const page = writable("login");
+export const page = writable();
 
 currentUser.subscribe(async (status) => {
     updatePage(status);

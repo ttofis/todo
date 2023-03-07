@@ -1,49 +1,35 @@
 <script lang="ts">
-  	import Title from "$lib/Title.svelte";
   	import Login from "$lib/Login.svelte";
   	import { fade } from "svelte/transition";
   	import Home from "$lib/Home.svelte";
 	import GetName from "$lib/GetName.svelte";
 	import "@fontsource/allura";
   	import { page, updatePage } from "$lib/page";
-  	import { onMount } from "svelte";
   	import { currentUser } from "$lib/firebase";
+  	import { onMount } from "svelte";
+	
+	let show = false;
 
-	let logo = true;
-
+	// intro: true workaround + waiting for firebase to find out the real user.
 	onMount(() => {
-		setTimeout(() => {logo = false}, 1000);
-	});
+		setTimeout(() => {
+			show = true;
+		}, 200);
+	})
 </script>
 
-{#if logo}
-<div out:fade={{duration: 600}} class="container h-screen mx-auto flex flex-col items-center justify-center">
-	<Title />
-</div>
-{:else}
-<div in:fade={{delay:600, duration: 600}} class="container mx-auto flex flex-col items-center justify-center h-screen">
-	{#if $page === "getName"}
-		<div in:fade={{delay:600, duration: 600}} out:fade={{duration: 500}} class="absolute mx-10">
+{#if show}
+{#key $page}
+<div in:fade={{delay:600, duration: 600}} out:fade={{duration: 600}} class="absolute top-0 left-0 h-screen w-screen">
+	<div class="container h-screen mx-auto flex flex-col items-center justify-center">
+		{#if $page === "getName"}
 			<GetName />
-		</div>
-	{:else if $page === "home"}
-		<div in:fade={{delay:600, duration: 600}} out:fade={{duration: 500}} class="absolute top-0 bottom-0 h-screen flex flex-col">
-			<button class="unstyled w-full" on:click={() => {updatePage($currentUser)}}><h1 class="unstyled text-7xl h-auto mt-2 todo text-center">Todo</h1></button>
+		{:else if $page === "home"}
 			<Home />
-		</div>
-	{:else}
-		<div in:fade={{delay:600, duration: 600}} out:fade={{duration: 500}} class="absolute mx-10">
-			<button class="unstyled w-full" on:click={() => {updatePage($currentUser)}}><h1 class="unstyled text-7xl h-auto mt-2 todo text-center">Todo</h1></button>
+		{:else if $page === "login"}
 			<Login />
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>
+{/key}
 {/if}
-
-<style>
-	.todo {
-		font-family: "Allura", cursive;
-        font-weight: normal;
-        font-style: normal;
-	}
-</style>

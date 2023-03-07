@@ -4,12 +4,17 @@
 	import '../app.postcss';
   	import { Toast } from '@skeletonlabs/skeleton';
 	import "@fontsource/allura";
+	import Header from '$lib/Header.svelte';
 </script>
 
 <svelte:head>
 	<title>Todo</title>
+	<script src="https://accounts.google.com/gsi/client" defer></script>
 </svelte:head>
 
-<slot />
+<div class="h-screen w-screen">
+	<Header />
+	<slot />
+</div>
 
 <Toast />
