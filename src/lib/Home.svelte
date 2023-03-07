@@ -6,16 +6,16 @@
     import Icon from '@iconify/svelte';
     import barsIcon from '@iconify/icons-fa6-solid/bars';
     import angleDown from '@iconify/icons-fa6-solid/angle-down';
-    import { flip } from "svelte/animate";
     import TaskGroup from "$lib/TaskGroup.svelte";
     import { fade } from "svelte/transition";
     import ListGroups from "$lib/ListGroups.svelte";
     import { browser } from "$app/environment";
+    import type { Unsubscribe } from "firebase/auth";
+    import { onDestroy } from "svelte";
 
     let saveName = "";
-    let groups: any[] = [];
     let view = "group";
-    let gID = 0;
+    let gID = "";
 
     let groupName = "";
 
@@ -28,6 +28,10 @@
     else if (hour < 18) greeting = greetingTypes[1];
     else greeting = greetingTypes[2];
 
+    let gList: string[] = [];
+    let mapGroups = new Map();
+    let mapTasks = new Map();
+
     async function getData() {
         if (!$currentUser) return;
         if (!browser) return;
@@ -38,57 +42,69 @@
         const taskGroupsRef = collection(db, "users", $currentUser.uid, "task_groups");
         const taskGroupsQuery = query(taskGroupsRef);
         const taskGroupsSnap = await getDocs(taskGroupsQuery);
-        let tempGroups = new Map();
+        
         taskGroupsSnap.forEach((data) => {
-            tempGroups.set(data.id, data.data()); 
+            mapGroups.set(data.id, data.data()); 
         })
-        const gList = usersSnap.get("group_list");
+        gList = usersSnap.get("group_list");
+        
+        const tasksRef = collection(db, "tasks");
+        const tasksQuery = query(tasksRef, where("author", "==", $currentUser.uid));
+        const tasksSnap = await getDocs(tasksQuery);
+        tasksSnap.forEach((data) => {
+            mapTasks.set(data.id, data.data()); 
+        })
 
-        for (const group of gList) {
-            if (tempGroups.has(group)) {
-                const d = tempGroups.get(group);
-                const tasksRef = collection(db, "tasks");
-                const tasksQuery = query(tasksRef, where("task_group", "==", group));
-                const tasksSnap = await getDocs(tasksQuery);
-                let tasks: { id: any; data: any; }[] = [];
-                let tempTasks = new Map();
-                let notCompleted = 0;
-                tasksSnap.forEach((data) => {
-                    tempTasks.set(data.id, data.data()); 
-                })
-                d.tasks.forEach((task: any) => {
-                    const t = tempTasks.get(task);
-                    tasks.push({
-                        id: task,
-                        data: t
-                    })
-                    if (t.completed == false) notCompleted++;
-                });
-                groups.push({
-                    id: group,
-                    name: d.name,
-                    tasks: tasks,
-                    remaining: notCompleted
-                });
-            }
+        if (gList.length == 0) {
+            view = "listGroups";
+        } else {
+            gID = gList[0];
         }
-
-        groups = groups;
-        if (groups.length == 0) view = "listGroups";
-        // initiateRealtime();
+        initiateRealtime();
     }
+
+    let usersUnsubscribe: Unsubscribe;
+    let taskGroupsUnsubscribe: Unsubscribe;
+    let tasksUnsubscribe: Unsubscribe;
 
     function initiateRealtime() {
         if (!browser) return;
         if (!$currentUser) return;
+        const usersRef = doc(db, "users", $currentUser.uid);
+        usersUnsubscribe = onSnapshot(usersRef, (doc) => {
+            saveName = doc.get("name");
+            gList = doc.get("group_list");
+        });
         const taskGroupsRef = collection(db, "users", $currentUser.uid, "task_groups");
-        const taskGroupsUnsubscribe = onSnapshot(taskGroupsRef, (doc) => {
-
+        const taskGroupsQuery = query(taskGroupsRef);
+        taskGroupsUnsubscribe = onSnapshot(taskGroupsQuery, (doc) => {
+            doc.docChanges().forEach((change) => {
+                if (change.type === "added" || change.type === "modified") {
+                    mapGroups.set(change.doc.id, change.doc.data());
+                }
+                if (change.type === "removed") {
+                    mapGroups.delete(change.doc.id);
+                }
+            })
+            mapGroups = mapGroups;
+        });
+        const tasksRef = collection(db, "tasks");
+        const tasksQuery = query(tasksRef, where("author", "==", $currentUser.uid));
+        tasksUnsubscribe = onSnapshot(tasksQuery, (doc) => {
+            doc.docChanges().forEach((change) => {
+                if (change.type === "added" || change.type === "modified") {
+                    mapTasks.set(change.doc.id, change.doc.data());
+                }
+                if (change.type === "removed") {
+                    mapTasks.delete(change.doc.id);
+                }
+            })
+            mapTasks = mapTasks;
         })
     }
 
-    function switchGroup(to: number) {
-        if (to < groups.length && to >= 0) {
+    function switchGroup(to: string) {
+        if (gList.indexOf(to) != -1) {
             gID = to;
             view = "group";
         }
@@ -103,6 +119,12 @@
 		{ color: 'transparent', start: 0, end: 25 },
 		{ color: 'rgb(var(--color-secondary-500))', start: 75, end: 100 }
 	];
+
+    onDestroy(() => {
+        usersUnsubscribe();
+        taskGroupsUnsubscribe();
+        tasksUnsubscribe();
+    })
 </script>
 
 <div class="h-full max-h-[800px] w-full mt-24 mb-5 flex justify-center">
@@ -118,15 +140,15 @@
             <h4 class="whitespace-nowrap overflow-hidden">{greeting}, {saveName}</h4>
             <button class="btn variant-soft-secondary btn-sm" on:click={logout}>Logout</button>
         </div>
-        <div class="w-full border rounded border-surface-300 mx-auto my-2" />
+        <hr class="!border-t-2 my-2" />
         {#if view === "group"}
             <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="grid grid-cols-3 h-auto">
                 <button on:click={() => {view = "listGroups"}} class="justify-self-start self-center"><Icon width="20" icon={barsIcon} /></button>
-                <h3 class="text-center whitespace-nowrap">{groups[gID].name}</h3>
+                <h3 class="text-center whitespace-nowrap">{mapGroups.get(gID).name}</h3>
                 <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
             </div>
             <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
-                <TaskGroup group={groups[gID]} />
+                <TaskGroup groupID={gID} tasks={mapTasks} group={mapGroups.get(gID)} />
             </div>
         {:else if view === "listGroups"}
             <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="grid grid-cols-3 h-auto">
@@ -134,7 +156,7 @@
                 <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
             </div>
             <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
-                <ListGroups groups={groups} switchGroup={switchGroup} />
+                <ListGroups groups={mapGroups} gList={gList} switchGroup={switchGroup} />
             </div>
         {/if}
     {/await}
