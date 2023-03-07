@@ -6,7 +6,7 @@
     import { updatePage } from "$lib/page";
 
     let promise: Promise<void> | null;
-    let name: string;
+    let name = "";
     let disabled = false;
 
     function triggerToast(msg: string, background: string): void {

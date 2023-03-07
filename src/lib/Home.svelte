@@ -2,14 +2,22 @@
     import { currentUser, db, logout } from "$lib/firebase";
     import { updatePage } from "$lib/page";
     import { ConicGradient, type ConicStop } from "@skeletonlabs/skeleton";
-    import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+    import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
     import Icon from '@iconify/svelte';
     import barsIcon from '@iconify/icons-fa6-solid/bars';
     import angleDown from '@iconify/icons-fa6-solid/angle-down';
     import { flip } from "svelte/animate";
+    import TaskGroup from "$lib/TaskGroup.svelte";
+    import { fade } from "svelte/transition";
+    import ListGroups from "$lib/ListGroups.svelte";
+    import { browser } from "$app/environment";
 
     let saveName = "";
     let groups: any[] = [];
+    let view = "group";
+    let gID = 0;
+
+    let groupName = "";
 
     // Greeting
     const hour = new Date().getHours();
@@ -22,6 +30,7 @@
 
     async function getData() {
         if (!$currentUser) return;
+        if (!browser) return;
         const usersRef = doc(db, "users", $currentUser.uid);
         const usersSnap = await getDoc(usersRef);
         saveName = usersSnap.get("name");
@@ -65,6 +74,24 @@
         }
 
         groups = groups;
+        if (groups.length == 0) view = "listGroups";
+        // initiateRealtime();
+    }
+
+    function initiateRealtime() {
+        if (!browser) return;
+        if (!$currentUser) return;
+        const taskGroupsRef = collection(db, "users", $currentUser.uid, "task_groups");
+        const taskGroupsUnsubscribe = onSnapshot(taskGroupsRef, (doc) => {
+
+        })
+    }
+
+    function switchGroup(to: number) {
+        if (to < groups.length && to >= 0) {
+            gID = to;
+            view = "group";
+        }
     }
 
     if (!$currentUser) {
@@ -78,7 +105,7 @@
 	];
 </script>
 
-<div class="h-full w-full mt-24 mb-5 flex justify-center">
+<div class="h-full max-h-[800px] w-full mt-24 mb-5 flex justify-center">
 <div class="card variant-glass-surface p-4 h-full w-full max-w-md mx-5 flex flex-col">
     {#await getData()}
         <div class="h-full flex justify-center items-center">
@@ -91,109 +118,25 @@
             <h4 class="whitespace-nowrap overflow-hidden">{greeting}, {saveName}</h4>
             <button class="btn variant-soft-secondary btn-sm" on:click={logout}>Logout</button>
         </div>
-        <div class="w-full border-2 rounded border-surface-300 mx-auto my-2" />
-        {#each groups as group}
-            <div class="grid grid-cols-3 h-auto">
-                <button class="justify-self-start self-center"><Icon width="20" icon={barsIcon} /></button>
-                <h3 class="text-center">{group.name}</h3>
+        <div class="w-full border rounded border-surface-300 mx-auto my-2" />
+        {#if view === "group"}
+            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="grid grid-cols-3 h-auto">
+                <button on:click={() => {view = "listGroups"}} class="justify-self-start self-center"><Icon width="20" icon={barsIcon} /></button>
+                <h3 class="text-center whitespace-nowrap">{groups[gID].name}</h3>
                 <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
             </div>
-            <div class="mt-2 card variant-glass-tertiary h-full flex flex-col">
-                <div class="p-3">
-                    <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-400">
-                        <input class="h-8" type="search" placeholder="Add new Task" required/>
-                        <button on:click={() => {console.log("HELLO")}} class="variant-filled-secondary">Submit</button>
-                    </form>
-                </div>
-                <div class="border w-full" />
-                <div class="overflow-hidden relative flex-grow">
-                    <div class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
-                        {#each group.tasks as task, i (i)}
-                        <div animate:flip class="flex p-1 gap-3 w-full justify-between border-b">
-                            <div class="self-center w-auto">
-                                <input type="checkbox" class="rounded-full w-7 h-7 checked:bg-secondary-500 checked:focus:bg-secondary-500" />
-                            </div>
-                            <div class="flex-grow min-w-0 self-center">
-                                <p class="unstyled text-lg truncate">{task.data.task}</p>
-                                <p class="unstyled text-sm truncate">{task.data.description}</p>
-                            </div>
-                            <button class="self-center"><Icon height="20" icon={angleDown} /></button>
-                        </div>
-                        <!--<h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>
-                            <h4 class="truncate">{task.data.task}</h4>-->
-                        {:else}
-                        <p class="text-center">No tasks! Congrats!</p>
-                        {/each}
-                    </div>
-                </div>
+            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
+                <TaskGroup group={groups[gID]} />
             </div>
-        {:else}
-            <p>No groups!?</p>
-        {/each}
+        {:else if view === "listGroups"}
+            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="grid grid-cols-3 h-auto">
+                <h3 class="text-center col-start-2 whitespace-nowrap">Task Groups</h3>
+                <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
+            </div>
+            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
+                <ListGroups groups={groups} switchGroup={switchGroup} />
+            </div>
+        {/if}
     {/await}
 </div>
 </div>

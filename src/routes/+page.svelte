@@ -4,8 +4,7 @@
   	import Home from "$lib/Home.svelte";
 	import GetName from "$lib/GetName.svelte";
 	import "@fontsource/allura";
-  	import { page, updatePage } from "$lib/page";
-  	import { currentUser } from "$lib/firebase";
+  	import { page } from "$lib/page";
   	import { onMount } from "svelte";
 	
 	let show = false;
