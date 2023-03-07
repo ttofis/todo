@@ -40,7 +40,7 @@
 <div class="mr-1 mb-3 mt-1 overflow-hidden relative flex-grow">
     <div class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
         {#each gList as group (group)}
-            <button animate:flip on:click={() => {switchGroup(group)}} class="w-full card variant-glass-surface p-3 flex justify-between">
+            <button animate:flip on:click={() => {switchGroup(group)}} class="w-full mb-1 card variant-glass-surface p-3 flex justify-between">
                 <div class="self-center">
                     <h4 class="truncate text-left">{groups.get(group).name}</h4>
                 </div>

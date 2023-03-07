@@ -17,8 +17,6 @@
     let view = "group";
     let gID = "";
 
-    let groupName = "";
-
     // Greeting
     const hour = new Date().getHours();
     const greetingTypes = ['Good morning', 'Good afternoon', 'Good evening'];
@@ -142,20 +140,20 @@
         </div>
         <hr class="!border-t-2 my-2" />
         {#if view === "group"}
-            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="grid grid-cols-3 h-auto">
+            <div class="grid grid-cols-3 h-auto">
                 <button on:click={() => {view = "listGroups"}} class="justify-self-start self-center"><Icon width="20" icon={barsIcon} /></button>
                 <h3 class="text-center whitespace-nowrap">{mapGroups.get(gID).name}</h3>
                 <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
             </div>
-            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
+            <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
                 <TaskGroup groupID={gID} tasks={mapTasks} group={mapGroups.get(gID)} />
             </div>
         {:else if view === "listGroups"}
-            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="grid grid-cols-3 h-auto">
+            <div class="grid grid-cols-3 h-auto">
                 <h3 class="text-center col-start-2 whitespace-nowrap">Task Groups</h3>
                 <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
             </div>
-            <div in:fade={{delay:200, duration: 200}} out:fade={{duration: 200}} class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
+            <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
                 <ListGroups groups={mapGroups} gList={gList} switchGroup={switchGroup} />
             </div>
         {/if}
