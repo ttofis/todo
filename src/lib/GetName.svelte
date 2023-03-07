@@ -1,23 +1,12 @@
 <script lang="ts">
-    import type { ToastSettings } from "@skeletonlabs/skeleton";
-    import { toastStore } from '@skeletonlabs/skeleton';
     import { currentUser, db } from "$lib/firebase";
     import { doc, setDoc, addDoc, collection, updateDoc } from "firebase/firestore"; 
     import { updatePage } from "$lib/page";
+    import { triggerToast } from "./triggerToast";
 
     let promise: Promise<void> | null;
     let name = "";
     let disabled = false;
-
-    function triggerToast(msg: string, background: string): void {
-        const t: ToastSettings = {
-            message: msg,
-            background: background,
-            autohide: true,
-            timeout: 3000,
-        };
-        toastStore.trigger(t);
-    }
 
     function handle() {
         if (name.length >= 1 && name.length <= 20) {
@@ -33,9 +22,7 @@
     }
 
     async function setName() {
-        if (!$currentUser) {
-            return;
-        }
+        if (!$currentUser) return;
         await setDoc(doc(db, "users", $currentUser.uid), {
             name: name,
             group_list: []

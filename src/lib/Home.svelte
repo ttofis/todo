@@ -6,16 +6,22 @@
     import Icon from '@iconify/svelte';
     import barsIcon from '@iconify/icons-fa6-solid/bars';
     import angleDown from '@iconify/icons-fa6-solid/angle-down';
+    import arrowTurnUp from '@iconify/icons-fa6-solid/arrow-turn-up';
     import TaskGroup from "$lib/TaskGroup.svelte";
     import { fade } from "svelte/transition";
     import ListGroups from "$lib/ListGroups.svelte";
     import { browser } from "$app/environment";
     import type { Unsubscribe } from "firebase/auth";
     import { onDestroy } from "svelte";
+    import TaskView from "./TaskView.svelte";
+    import penToSquare from '@iconify/icons-fa6-solid/pen-to-square';
+  import AccountSettings from "./AccountSettings.svelte";
 
     let saveName = "";
     let view = "group";
+    let preview = "";
     let gID = "";
+    let tID = "";
 
     // Greeting
     const hour = new Date().getHours();
@@ -108,6 +114,21 @@
         }
     }
 
+    function switchTask(to: string) {
+        if (mapTasks.has(to)) {
+            tID = to;
+            view = "task";
+        }
+    }
+
+    function goBackGroup() {
+        if (gList.indexOf(gID) != -1) {
+            view = "group";
+        }else{
+            view = "listGroups";
+        }
+    }
+
     if (!$currentUser) {
         updatePage($currentUser);
     }
@@ -135,27 +156,42 @@
         </div>
     {:then _}
         <div class="flex justify-between h-auto">
-            <h4 class="whitespace-nowrap overflow-hidden">{greeting}, {saveName}</h4>
+            <h4 class="whitespace-nowrap truncate overflow-hidden">{greeting}, <button on:click={() => {preview = view; view = "account"}} class="text-primary-500">{saveName}</button></h4>
             <button class="btn variant-soft-secondary btn-sm" on:click={logout}>Logout</button>
         </div>
         <hr class="!border-t-2 my-2" />
         {#if view === "group"}
-            <div class="grid grid-cols-3 h-auto">
+            <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
                 <button on:click={() => {view = "listGroups"}} class="justify-self-start self-center"><Icon width="20" icon={barsIcon} /></button>
-                <h3 class="text-center whitespace-nowrap">{mapGroups.get(gID).name}</h3>
-                <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
+                <h3 class="text-center whitespace-nowrap truncate">{mapGroups.get(gID).name}</h3>
+                <button class="justify-self-end self-center"><Icon height="20" icon={penToSquare} /></button>
             </div>
             <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
-                <TaskGroup groupID={gID} tasks={mapTasks} group={mapGroups.get(gID)} />
+                <TaskGroup groupID={gID} tasks={mapTasks} group={mapGroups.get(gID)} switchTask={switchTask} />
             </div>
         {:else if view === "listGroups"}
-            <div class="grid grid-cols-3 h-auto">
-                <h3 class="text-center col-start-2 whitespace-nowrap">Task Groups</h3>
-                <button class="justify-self-end self-end"><Icon height="25" icon={angleDown} /></button>
+            <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
+                <h3 class="text-center col-start-2 whitespace-nowrap truncate">Task Groups</h3>
+                <button class="justify-self-end self-center"><Icon height="20" icon={penToSquare} /></button>
             </div>
             <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
                 <ListGroups groups={mapGroups} gList={gList} switchGroup={switchGroup} />
             </div>
+        {:else if view === "task"}
+            <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
+                <button on:click={() => {goBackGroup()}} class="justify-self-start self-center"><Icon height="18" icon={arrowTurnUp} rotate={3} /></button>
+                <h3 class="text-center whitespace-nowrap truncate">Viewing Task</h3>
+                <button class="justify-self-end self-center"><Icon height="20" icon={penToSquare} /></button>
+            </div>
+            <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
+                <TaskView taskID={tID} tasks={mapTasks} />
+            </div>
+        {:else if view === "account"}
+            <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
+                <button on:click={() => {view = preview}} class="justify-self-start self-center"><Icon height="18" icon={arrowTurnUp} rotate={3} /></button>
+                <h3 class="text-center whitespace-nowrap truncate">Account Settings</h3>
+            </div>
+            <AccountSettings name={saveName} />
         {/if}
     {/await}
 </div>

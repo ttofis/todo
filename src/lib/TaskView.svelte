@@ -5,12 +5,10 @@
     import { currentUser, db } from './firebase';
     import { flip } from 'svelte/animate';
 
-    export let groupID: string;
-    export let group: any;
+    export let taskID: string;
     export let tasks: Map<any, any>;
     let taskName = "";
     let disabled = false;
-    export let switchTask:any;
 
     async function switchChecked(task: string) {
         await updateDoc(doc(db,"tasks",task), {
@@ -30,12 +28,12 @@
             priority: 0,
             subtasks: [],
             task: taskName,
-            task_group: groupID
+            task_group: tasks.get(taskID).task_group
         })
-        let tempGroupList: string[] = group.tasks;
-        tempGroupList.unshift(newTask.id);
-        await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
-            tasks: tempGroupList
+        let tempTasksList: string[] = tasks.get(taskID).subtasks;
+        tempTasksList.unshift(newTask.id);
+        await updateDoc(doc(db, "tasks", taskID), {
+            subtasks: tempTasksList
         })
         disabled = false;
         taskName = "";
@@ -43,15 +41,19 @@
 </script>
 
 <div class="p-3">
+    <div class="mb-2">
+        <h4><u>Task:</u> {tasks.get(taskID).task}</h4>
+        <h4><u>Description:</u> {tasks.get(taskID).description}</h4>
+    </div>
     <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-        <input bind:value={taskName} class="h-8" type="search" placeholder="Add new Task" required/>
+        <input bind:value={taskName} class="h-8" type="search" placeholder="Add new Subtask" required/>
         <button on:click={() => {createTask()}} class="variant-filled-surface" disabled={disabled}>Add</button>
     </form>
 </div>
 <hr class="!border-t-2" />
 <div class="mr-1 mb-3 mt-1 overflow-hidden relative flex-grow">
     <div class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
-        {#each group.tasks as task (task)}
+        {#each tasks.get(taskID).subtasks as task (task)}
         {@const compl = tasks.get(task).completed}
         <div animate:flip class="flex p-1 gap-3 w-full justify-between border-b-2 mb-1 border-surface-600">
             <div class="self-center w-auto">
@@ -61,10 +63,9 @@
                 <p class="unstyled text-lg truncate">{tasks.get(task).task}</p>
                 <p class="unstyled text-sm truncate">{tasks.get(task).description}</p>
             </div>
-            <button on:click={() => {switchTask(task)}} class="self-center"><Icon height="20" icon={angleRight} /></button>
         </div>
         {:else}
-        <p class="text-center">No tasks! Congrats!</p>
+        <p class="text-center">No subtasks</p>
         {/each}
     </div>
 </div>
