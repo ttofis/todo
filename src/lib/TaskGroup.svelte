@@ -10,7 +10,8 @@
     export let tasks: Map<any, any>;
     let taskName = "";
     let disabled = false;
-    export let switchTask:any;
+    export let switchTask: any;
+    export let edit: boolean;
 
     async function switchChecked(task: string) {
         await updateDoc(doc(db,"tasks",task), {
@@ -55,7 +56,7 @@
         {@const compl = tasks.get(task).completed}
         <div animate:flip class="flex p-1 gap-3 w-full justify-between border-b-2 mb-1 border-surface-600">
             <div class="self-center w-auto">
-                <input on:click={() => {switchChecked(task)}} checked={compl} type="checkbox" class="rounded-full w-7 h-7 hover:brightness-[1.15] hover:bg-secondary-500 checked:hover:bg-secondary-500 checked:bg-secondary-500 checked:focus:bg-secondary-500" />
+                <input disabled={edit} on:click={() => {switchChecked(task)}} checked={compl} type="checkbox" class="rounded-full w-7 h-7 hover:brightness-[1.15] hover:bg-secondary-500 checked:hover:bg-secondary-500 checked:bg-secondary-500 checked:focus:bg-secondary-500" />
             </div>
             <div class="flex-grow min-w-0 self-center">
                 <p class="unstyled text-lg truncate">{tasks.get(task).task}</p>

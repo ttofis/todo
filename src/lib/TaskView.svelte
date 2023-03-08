@@ -9,6 +9,7 @@
     export let tasks: Map<any, any>;
     let taskName = "";
     let disabled = false;
+    export let edit: boolean;
 
     async function switchChecked(task: string) {
         await updateDoc(doc(db,"tasks",task), {
