@@ -18,7 +18,7 @@
 
     let saveName = "";
     let view = "group";
-    let preview = "";
+    let preview = "group";
     let gID = "";
     let tID = "";
     let edit = false;
