@@ -7,7 +7,6 @@
     import barsIcon from '@iconify/icons-fa6-solid/bars';
     import arrowTurnUp from '@iconify/icons-fa6-solid/arrow-turn-up';
     import TaskGroup from "$lib/TaskGroup.svelte";
-    import { fade } from "svelte/transition";
     import ListGroups from "$lib/ListGroups.svelte";
     import { browser } from "$app/environment";
     import type { Unsubscribe } from "firebase/auth";
@@ -59,10 +58,10 @@
             mapTasks.set(data.id, data.data()); 
         })
 
-        if (gList.length == 0) {
-            view = "listGroups";
-        } else {
+        if (gList.length == 1) {
             gID = gList[0];
+        } else {
+            view = "listGroups";
         }
         initiateRealtime();
     }
