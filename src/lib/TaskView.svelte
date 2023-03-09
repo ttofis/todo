@@ -60,8 +60,7 @@
                 <input on:click={() => {switchChecked(task)}} checked={compl} type="checkbox" class="rounded-full w-7 h-7 hover:brightness-[1.15] hover:bg-secondary-500 checked:hover:bg-secondary-500 checked:bg-secondary-500 checked:focus:bg-secondary-500" />
             </div>
             <div class="flex-grow min-w-0 self-center">
-                <p class="unstyled text-lg truncate">{tasks.get(task).task}</p>
-                <p class="unstyled text-sm truncate">{tasks.get(task).description}</p>
+                <p class="unstyled text-lg leading-5">{tasks.get(task).task}</p>
             </div>
         </div>
         {:else}
