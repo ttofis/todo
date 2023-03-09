@@ -63,10 +63,10 @@
     function deleteGroup() {
         const confirm: ModalSettings = {
             type: 'confirm',
-            title: 'Delete Task Group',
+            title: 'Delete Task Group: ' + group.name,
             body: 'Are you sure you want to delete this Task Group?',
             // TRUE if confirm pressed, FALSE if cancel pressed
-            response: (r: boolean) => doDeleteGroup(r),
+            response: (r: boolean) => {if (r) doDeleteGroup()},
             // Optionally override the button text
             buttonTextCancel: 'Cancel',
             buttonTextConfirm: 'Delete',
@@ -74,9 +74,8 @@
         modalStore.trigger(confirm);
     }
 
-    async function doDeleteGroup(r: boolean) {
+    async function doDeleteGroup() {
         if (!$currentUser) return;
-        if (!r) return;
         let cpGList = gList;
         switchGroupList();
         cpGList.splice(cpGList.indexOf(groupID), 1)
@@ -84,16 +83,30 @@
             group_list: cpGList
         })
         for (let task of group.tasks) {
-            deleteTask(task, false);
+            doDeleteTask(task, false);
         }
         await deleteDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID));
     }
 
-    async function deleteTask(task: string, handleList: boolean = true) {
+    function deleteTask(task: string) {
+        const confirm: ModalSettings = {
+            type: 'confirm',
+            title: 'Delete Task: '+tasks.get(task).task,
+            body: 'Are you sure you want to delete this Task?',
+            // TRUE if confirm pressed, FALSE if cancel pressed
+            response: (r: boolean) => {if (r) doDeleteTask(task, true)},
+            // Optionally override the button text
+            buttonTextCancel: 'Cancel',
+            buttonTextConfirm: 'Delete',
+        };
+        modalStore.trigger(confirm);
+    }
+
+    async function doDeleteTask(task: string, handleList: boolean = true) {
         if (!$currentUser) return;
         if (tasks.get(task).subtasks) {
             for (let t of tasks.get(task).subtasks) {
-                deleteTask(t, false);
+                doDeleteTask(t, false);
             }
         }
         if (handleList) {
