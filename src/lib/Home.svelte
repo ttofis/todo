@@ -86,6 +86,9 @@
                     mapGroups.set(change.doc.id, change.doc.data());
                 }
                 if (change.type === "removed") {
+                    if (gID === change.doc.id) {
+                        view = "listGroups";
+                    }
                     gList = gList.splice(gList.indexOf(change.doc.id), 1)
                     mapGroups.delete(change.doc.id);
                 }
@@ -100,6 +103,9 @@
                     mapTasks.set(change.doc.id, change.doc.data());
                 }
                 if (change.type === "removed") {
+                    if (gID === change.doc.id && view === "task") {
+                        view = "group";
+                    }
                     mapTasks.delete(change.doc.id);
                 }
             })
