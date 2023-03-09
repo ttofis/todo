@@ -1,6 +1,7 @@
+import { browser } from "$app/environment";
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { enableIndexedDbPersistence, getFirestore } from "firebase/firestore";
 import { writable } from "svelte/store";
 
 const firebaseConfig = {
@@ -22,6 +23,14 @@ onAuthStateChanged(auth, (user) => {
 })
 
 export const db = getFirestore(app);
+
+if (browser) {
+    enableIndexedDbPersistence(db)
+    .catch((err) => {
+        console.log("PWA not compatible")
+        console.log(err);
+    });
+}
 
 export function logout() {
     auth.signOut()
