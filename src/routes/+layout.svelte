@@ -2,7 +2,7 @@
 	import '@skeletonlabs/skeleton/themes/theme-modern.css';
 	import '@skeletonlabs/skeleton/styles/all.css';
 	import '../app.postcss';
-  	import { Toast } from '@skeletonlabs/skeleton';
+  	import { Modal, Toast } from '@skeletonlabs/skeleton';
 	import "@fontsource/allura";
 	import Header from '$lib/Header.svelte';
 </script>
@@ -18,3 +18,4 @@
 </div>
 
 <Toast />
+<Modal buttonPositive="variant-glass-error"/>

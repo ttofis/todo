@@ -86,6 +86,7 @@
                     mapGroups.set(change.doc.id, change.doc.data());
                 }
                 if (change.type === "removed") {
+                    gList = gList.splice(gList.indexOf(change.doc.id), 1)
                     mapGroups.delete(change.doc.id);
                 }
             })
@@ -104,6 +105,11 @@
             })
             mapTasks = mapTasks;
         })
+    }
+
+    function switchGroupList() {
+        view = "listGroups";
+        edit = false;
     }
 
     function switchGroup(to: string) {
@@ -181,7 +187,7 @@
                 <button class="justify-self-end self-center" class:text-primary-500={edit} on:click={() => {switchEdit()}}><Icon height="20" icon={penToSquare} /></button>
             </div>
             <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
-                <TaskGroup edit={edit} groupID={gID} tasks={mapTasks} group={mapGroups.get(gID)} switchTask={switchTask} />
+                <TaskGroup edit={edit} gList={gList} groupID={gID} tasks={mapTasks} group={mapGroups.get(gID)} switchGroupList={switchGroupList} switchTask={switchTask} />
             </div>
         {:else if view === "listGroups"}
             <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">

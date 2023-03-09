@@ -2,11 +2,9 @@
     import angleRight from '@iconify/icons-fa6-solid/angle-right';
     import Icon from '@iconify/svelte';
     import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
-    import { flip } from 'svelte/animate';
     import { currentUser, db } from './firebase';
     import { dndzone } from 'svelte-dnd-action';
     import barsIcon from '@iconify/icons-fa6-solid/bars';
-  import { identity } from 'svelte/internal';
 
     export let groups: Map<string, any>;
     export let gList: string[];
@@ -32,19 +30,6 @@
         })
         disabled = false;
         groupName = "";
-    }
-
-    async function switchBetween(a: number, b: number) {
-        if (!$currentUser) return;
-        let tempGroupList = gList;
-        
-        let tmp = tempGroupList[a];
-        tempGroupList[a] = tempGroupList[b];
-        tempGroupList[b] = tmp;
-
-        await updateDoc(doc(db, "users", $currentUser.uid), {
-            group_list: tempGroupList
-        })
     }
 
     // drag and drop
