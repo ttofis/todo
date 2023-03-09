@@ -6,6 +6,7 @@
     import { currentUser, db } from './firebase';
     import { dndzone } from 'svelte-dnd-action';
     import barsIcon from '@iconify/icons-fa6-solid/bars';
+  import { identity } from 'svelte/internal';
 
     export let groups: Map<string, any>;
     export let gList: string[];
@@ -46,20 +47,30 @@
         })
     }
 
-    const flipDurationMs = 200
-
     // drag and drop
 
     function itemify(value: string) {
         return {id: value, gid: value};
     }
 
+    function arrayify(value: Item) {
+        return value.gid;
+    }
+
     function handleConsider(e: CustomEvent<DndEvent>) {
 		ItemList = e.detail.items;
 	}
 
-    function handleFinalize(e: CustomEvent<DndEvent>) {
-		ItemList = e.detail.items;
+    async function handleFinalize(e: CustomEvent<DndEvent>) {
+        if (!$currentUser) return;
+        try {
+            ItemList = e.detail.items;
+            await updateDoc(doc(db, "users", $currentUser.uid), {
+                group_list: ItemList.flatMap(arrayify)
+            })
+        } catch {
+            ItemList = gList.map(itemify);
+        }
 	}
 
     $: {
