@@ -1,6 +1,5 @@
 <script lang="ts">
     import Icon from '@iconify/svelte';
-    import angleRight from '@iconify/icons-fa6-solid/angle-right';
     import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
     import { currentUser, db } from './firebase';
     import { flip } from 'svelte/animate';

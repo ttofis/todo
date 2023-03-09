@@ -79,13 +79,13 @@
         if (!r) return;
         let cpGList = gList;
         switchGroupList();
-        for (let task of group.tasks) {
-            deleteTask(task, false);
-        }
         cpGList.splice(cpGList.indexOf(groupID), 1)
         await updateDoc(doc(db, "users", $currentUser.uid), {
             group_list: cpGList
         })
+        for (let task of group.tasks) {
+            deleteTask(task, false);
+        }
         await deleteDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID));
     }
 

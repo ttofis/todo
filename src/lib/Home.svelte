@@ -103,8 +103,8 @@
                     mapTasks.set(change.doc.id, change.doc.data());
                 }
                 if (change.type === "removed") {
-                    if (gID === change.doc.id && view === "task") {
-                        view = "group";
+                    if (tID === change.doc.id && view === "task") {
+                        goBackGroup();
                     }
                     mapTasks.delete(change.doc.id);
                 }
