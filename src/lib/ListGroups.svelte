@@ -69,17 +69,17 @@
 
 <div class="p-3">
     <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-        <input bind:value={groupName} class="h-8" type="search" placeholder="Add new Group" required/>
+        <input bind:value={groupName} class="h-8" type="search" placeholder="Add new Group" disabled={disabled || edit} required/>
         <button on:click={() => {createGroup()}} class="variant-filled-surface" disabled={disabled || edit}>Add</button>
     </form>
 </div>
 <hr class="!border-t-2" />
 <div class="mr-1 mb-3 mt-1 overflow-hidden relative flex-grow">
-    <div use:dndzone={{items: ItemList, dragDisabled: !edit, flipDurationMs, dropTargetStyle: {}}}
+    <div use:dndzone={{items: ItemList, dragDisabled: !edit, dropTargetStyle: {}}}
     on:consider={handleConsider} on:finalize={handleFinalize}
     class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
         {#each ItemList as group (group.id)}
-            <button animate:flip={{duration: flipDurationMs}}
+            <button
             on:click={() => {if (!edit) switchGroup(group.gid)}}
             class:card-hover={!edit} class="w-full mb-1 card variant-soft-tertiary p-3 flex justify-between">
                 <div class="self-center">
