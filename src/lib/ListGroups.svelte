@@ -4,7 +4,8 @@
     import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
     import { flip } from 'svelte/animate';
     import { currentUser, db } from './firebase';
-    import { dndzone, SHADOW_ITEM_MARKER_PROPERTY_NAME } from 'svelte-dnd-action';
+    import { dndzone } from 'svelte-dnd-action';
+    import barsIcon from '@iconify/icons-fa6-solid/bars';
 
     export let groups: Map<string, any>;
     export let gList: string[];
@@ -80,13 +81,15 @@
         {#each ItemList as group (group.id)}
             <button animate:flip={{duration: flipDurationMs}}
             on:click={() => {if (!edit) switchGroup(group.gid)}}
-            class:card-hover={!edit} class="w-full mb-1 card variant-glass-tertiary p-3 flex justify-between">
+            class:card-hover={!edit} class="w-full mb-1 card variant-soft-tertiary p-3 flex justify-between">
                 <div class="self-center">
                     <h4 class="truncate text-left">{groups.get(group.gid).name}</h4>
                 </div>
                 <div class="self-center flex gap-3">
                     {#if !edit}
                     <Icon icon={angleRight} />
+                    {:else}
+                    <Icon icon={barsIcon} />
                     {/if}
                 </div>
             </button>
