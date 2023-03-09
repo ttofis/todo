@@ -30,6 +30,7 @@
 	"type": "module",
 	"dependencies": {
 		"@fontsource/allura": "^4.5.12",
-		"firebase": "^9.17.2"
+		"firebase": "^9.17.2",
+		"svelte-dnd-action": "^0.9.22"
 	}
 }

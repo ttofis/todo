@@ -1,11 +1,10 @@
 <script lang="ts">
     import angleRight from '@iconify/icons-fa6-solid/angle-right';
-    import angleDown from '@iconify/icons-fa6-solid/angle-down';
-    import angleUp from '@iconify/icons-fa6-solid/angle-up';
     import Icon from '@iconify/svelte';
     import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
     import { flip } from 'svelte/animate';
     import { currentUser, db } from './firebase';
+    import { dndzone, SHADOW_ITEM_MARKER_PROPERTY_NAME } from 'svelte-dnd-action';
 
     export let groups: Map<string, any>;
     export let gList: string[];
@@ -13,6 +12,8 @@
     let disabled = false;
     export let switchGroup: any;
     export let edit: boolean;
+
+    let ItemList: Item[];
 
     async function createGroup() {
         if (groupName === "") return;
@@ -43,6 +44,26 @@
             group_list: tempGroupList
         })
     }
+
+    const flipDurationMs = 200
+
+    // drag and drop
+
+    function itemify(value: string) {
+        return {id: value, gid: value};
+    }
+
+    function handleConsider(e: CustomEvent<DndEvent>) {
+		ItemList = e.detail.items;
+	}
+
+    function handleFinalize(e: CustomEvent<DndEvent>) {
+		ItemList = e.detail.items;
+	}
+
+    $: {
+        ItemList = gList.map(itemify);
+    }
 </script>
 
 <div class="p-3">
@@ -53,17 +74,18 @@
 </div>
 <hr class="!border-t-2" />
 <div class="mr-1 mb-3 mt-1 overflow-hidden relative flex-grow">
-    <div class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
-        {#each gList as group, index (group)}
-            <button animate:flip on:click={() => {if (!edit) switchGroup(group)}} class:card-hover={!edit} class="w-full mb-1 card variant-glass-tertiary p-3 flex justify-between">
+    <div use:dndzone={{items: ItemList, dragDisabled: !edit, flipDurationMs, dropTargetStyle: {}}}
+    on:consider={handleConsider} on:finalize={handleFinalize}
+    class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
+        {#each ItemList as group (group.id)}
+            <button animate:flip={{duration: flipDurationMs}}
+            on:click={() => {if (!edit) switchGroup(group.gid)}}
+            class:card-hover={!edit} class="w-full mb-1 card variant-glass-tertiary p-3 flex justify-between">
                 <div class="self-center">
-                    <h4 class="truncate text-left">{groups.get(group).name}</h4>
+                    <h4 class="truncate text-left">{groups.get(group.gid).name}</h4>
                 </div>
                 <div class="self-center flex gap-3">
-                    {#if edit}
-                    {#if index < gList.length-1}<button on:click={() => switchBetween(index, index+1)}><Icon icon={angleDown} /></button>{/if}
-                    {#if index > 0}<button on:click={() => switchBetween(index, index-1)}><Icon icon={angleUp} /></button>{/if}
-                    {:else}
+                    {#if !edit}
                     <Icon icon={angleRight} />
                     {/if}
                 </div>

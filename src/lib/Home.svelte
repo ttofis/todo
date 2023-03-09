@@ -133,6 +133,7 @@
     }
 
     function viewAccount() {
+        if (view === "account") return;
         edit = false;
         preview = view;
         view = "account";
