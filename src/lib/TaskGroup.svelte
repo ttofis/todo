@@ -179,7 +179,10 @@
                 {#if edit}
                 <Icon class="self-center" icon={barsIcon} />
                 {:else}
-                <input disabled={edit} on:click={() => {switchChecked(task.tid)}} checked={compl} type="checkbox" class="rounded-full w-7 h-7 hover:brightness-[1.15] hover:bg-secondary-500 checked:hover:bg-secondary-500 checked:bg-secondary-500 checked:focus:bg-secondary-500" />
+                <input disabled={edit} on:click={() => {switchChecked(task.tid)}}
+                checked={compl} type="checkbox"
+                class="rounded-full w-7 h-7 hover:brightness-[1.15] hover:bg-white checked:hover:bg-secondary-500
+                checked:bg-secondary-500 checked:focus:bg-secondary-500" />
                 {/if}
             </div>
             <div class="flex-grow min-w-0 self-center">
