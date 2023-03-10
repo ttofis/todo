@@ -65,7 +65,7 @@
 
 <div class="p-3">
     <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-        <input bind:value={groupName} class="h-8" type="search" placeholder="Add new Group" disabled={disabled || edit} required/>
+        <input bind:value={groupName} class="h-8" type="text" placeholder="Add new Group" disabled={disabled || edit} required/>
         <button on:click={() => {createGroup()}} class="variant-filled-surface" disabled={disabled || edit}>Add</button>
     </form>
 </div>

@@ -46,7 +46,7 @@
         <h4><u>Description:</u> {tasks.get(taskID).description}</h4>
     </div>
     <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-        <input bind:value={taskName} class="h-8" type="search" placeholder="Add new Subtask" required/>
+        <input bind:value={taskName} class="h-8" type="text" placeholder="Add new Subtask" required/>
         <button on:click={() => {createTask()}} class="variant-filled-surface" disabled={disabled}>Add</button>
     </form>
 </div>

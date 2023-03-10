@@ -21,7 +21,7 @@
     <label class="label">
         <span>Change view name</span>
         <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-            <input bind:value={name} class="h-8" type="search" placeholder="View Name" required/>
+            <input bind:value={name} class="h-8" type="text" placeholder="View Name" required/>
             <button on:click={() => {changeName()}} class="variant-filled-surface" disabled={disabled}>Set</button>
         </form>
     </label>

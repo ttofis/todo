@@ -153,14 +153,14 @@
 <div class="p-3 flex flex-col gap-2">
     {#if !edit}
     <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-        <input bind:value={taskName} class="h-8" type="search" placeholder="Add new Task" disabled={disabled} required/>
+        <input bind:value={taskName} class="h-8" type="text" placeholder="Add new Task" disabled={disabled} required/>
         <button on:click={() => {createTask()}} class="variant-filled-surface" disabled={disabled}>Add</button>
     </form>
     {:else}
     <label class="label">
         <span>Change Task Group name</span>
         <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-            <input bind:value={cpName} class="h-8" type="search" placeholder="Task Group name" disabled={disabled} required/>
+            <input bind:value={cpName} class="h-8" type="text" placeholder="Task Group name" disabled={disabled} required/>
             <button on:click={() => {changeName()}} class="variant-filled-surface" disabled={disabled}>Set</button>
         </form>
     </label>
