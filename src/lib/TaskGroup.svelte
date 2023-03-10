@@ -6,10 +6,13 @@
     import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
     import { currentUser, db } from './firebase';
     import { dndzone } from 'svelte-dnd-action';
-    import { modalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+    import { modalStore, RadioGroup, RadioItem, type ModalSettings } from '@skeletonlabs/skeleton';
 
     export let groupID: string;
-    export let group: any;
+    export let group: {
+        name: string,
+        tasks: string[]
+    };
     export let tasks: Map<any, any>;
     let taskName = "";
     let disabled = false;
@@ -20,6 +23,7 @@
 
     let cpName = group.name
     let ItemList: Item[];
+    let show = "all";
 
     async function switchChecked(task: string) {
         await updateDoc(doc(db,"tasks",task), {
@@ -52,7 +56,8 @@
 
     async function changeName() {
         if (!$currentUser) return;
-        if (cpName.length < 1 || cpName.length > 20) return;
+        if (cpName.length < 1 || cpName.length > 30) return;
+        if (cpName === group.name) return;
         disabled = true;
         await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
             name: cpName
@@ -145,8 +150,15 @@
         }
 	}
 
+    function filterify(value: {id: string, tid: string}, show: string, edit: boolean) {
+        if (show === "all" || edit) return true;
+        if (tasks.get(value.tid).completed && show === "completed") return true;
+        if (!tasks.get(value.tid).completed && show === "pending") return true;
+        return false;
+    }
+
     $: {
-        ItemList = group.tasks.map(itemify);
+        ItemList = group.tasks.map(itemify).filter((value) => filterify(value, show, edit));
     }
 </script>
 
@@ -156,11 +168,16 @@
         <input bind:value={taskName} class="h-8" type="text" placeholder="Add new Task" disabled={disabled} required/>
         <button on:click={() => {createTask()}} class="variant-filled-surface" disabled={disabled}>Add</button>
     </form>
+    <RadioGroup class="select-none">
+        <RadioItem bind:group={show} name="show" value="all">All</RadioItem>
+        <RadioItem bind:group={show} name="show" value="pending">Pending</RadioItem>
+        <RadioItem bind:group={show} name="show" value="completed">Completed</RadioItem>
+    </RadioGroup>
     {:else}
     <label class="label">
         <span>Change Task Group name</span>
         <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-            <input bind:value={cpName} class="h-8" type="text" placeholder="Task Group name" disabled={disabled} required/>
+            <input bind:value={cpName} class="h-8" type="text" maxlength="30" placeholder="Task Group name" disabled={disabled} required/>
             <button on:click={() => {changeName()}} class="variant-filled-surface" disabled={disabled}>Set</button>
         </form>
     </label>
@@ -173,14 +190,13 @@
     on:consider={handleConsider} on:finalize={handleFinalize}
     class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
         {#each ItemList as task (task.id)}
-        {@const compl = tasks.get(task.tid).completed}
         <div class="flex p-1 gap-3 w-full justify-between border-b-2 mb-1 border-surface-600">
             <div class="self-center w-auto">
                 {#if edit}
                 <Icon class="self-center" icon={barsIcon} />
                 {:else}
                 <input disabled={edit} on:click={() => {switchChecked(task.tid)}}
-                checked={compl} type="checkbox"
+                checked={tasks.get(task.tid).completed} type="checkbox"
                 class="rounded-full w-7 h-7 hover:brightness-[1.15] hover:bg-white checked:hover:bg-secondary-500
                 checked:bg-secondary-500 checked:focus:bg-secondary-500" />
                 {/if}

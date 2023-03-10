@@ -16,7 +16,7 @@
     let ItemList: Item[];
 
     async function createGroup() {
-        if (groupName === "") return;
+        if (groupName.length < 1 || groupName.length > 30) return;
         if (!$currentUser) return;
         disabled = true;
         const newGroup = await addDoc(collection(db, "users", $currentUser.uid, "task_groups"), {
@@ -64,8 +64,8 @@
 </script>
 
 <div class="p-3">
-    <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500">
-        <input bind:value={groupName} class="h-8" type="text" placeholder="Add new Group" disabled={disabled || edit} required/>
+    <form on:submit|preventDefault class="input-group input-group-divider grid-cols-[1fr_auto] focus-within:border-secondary-500 mb-2">
+        <input bind:value={groupName} class="h-8" type="text" placeholder="Add new Group" maxlength="30" disabled={disabled || edit} required/>
         <button on:click={() => {createGroup()}} class="variant-filled-surface" disabled={disabled || edit}>Add</button>
     </form>
 </div>
