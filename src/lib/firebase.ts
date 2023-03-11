@@ -1,8 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, type User } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where, type DocumentData } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, getFirestore, onSnapshot, query, where } from "firebase/firestore";
 import { derived, readable, writable, type Readable } from "svelte/store";
-import type { Task, UserData, ItemTaskGroup, TaskGroup, ItemTask, TaskGroupRecord, TaskRecord } from "$lib/types/data";
+import type { Task, UserData, ItemTaskGroup, TaskGroup, ItemTask, TaskGroupRecord } from "$lib/types/data";
 import { dev } from "$app/environment";
 
 const firebaseConfig = {
@@ -62,22 +62,33 @@ export function logout() {
     })
 }
 
+export const subTasks = writable(new Map<string, ItemTask[]>())
+
 export const tasks = writable<Map<string, Task>>(new Map<string, Task>(), () => {
+    let innerUnsub: () => void;
     const unsubscribe = userData.subscribe((user) => {
         if (user.uid !== "" && user.uid != undefined) {
             const refTasks = collection(db, "tasks");
             const qTasks = query(refTasks, where("author", "==", user.uid));
 
-            const unsubscribe = onSnapshot(qTasks, (snapshot) => {
+            innerUnsub = onSnapshot(qTasks, (snapshot) => {
                 tasks.update((cpTasks) => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added" || change.type === "modified") {
-                            const data = change.doc.data() as TaskRecord;
-                            let items = data.subtasks.map((val) => {return {id: val, tid: val} as ItemTask})
-                            cpTasks.set(change.doc.id, {items, ...data} as Task);
+                            const data = change.doc.data() as Task;
+                            let items = data.subtasks.map((val) => {return {id: val, tid: val} as ItemTask});
+                            subTasks.update((subs) => {
+                                subs.set(change.doc.id, items);
+                                return subs;
+                            })
+                            cpTasks.set(change.doc.id, data);
                         }
                         if (change.type === "removed") {
                             cpTasks.delete(change.doc.id);
+                            subTasks.update((subs) => {
+                                subs.delete(change.doc.id);
+                                return subs;
+                            })
                         }
                     });
                     return cpTasks;
@@ -85,20 +96,24 @@ export const tasks = writable<Map<string, Task>>(new Map<string, Task>(), () => 
             }, (err) => {
                 if (dev) console.log(err);
             });
-            return () => unsubscribe();
+            return () => innerUnsub();
         }else{
             return new Map<string, Task>();
         }
     })
-    return () =>  unsubscribe();
+    return () => {
+        innerUnsub();
+        unsubscribe();
+    }
 });
 
-export const groups = writable<Map<string, TaskGroup>>(new Map<string, TaskGroup>(), (set) => {
+export const groups = writable<Map<string, TaskGroup>>(new Map<string, TaskGroup>(), () => {
+    let innerUnsub: () => void;
     const unsubscribe = userData.subscribe((user) => {
         if (user.uid !== "" && user.uid != undefined) {
             const refGroups = collection(db, "users", user.uid, "task_groups");
 
-            const unsubscribe = onSnapshot(refGroups, (snapshot) => {
+            innerUnsub = onSnapshot(refGroups, (snapshot) => {
                 groups.update((cpGroups) => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added" || change.type === "modified") {
@@ -116,14 +131,15 @@ export const groups = writable<Map<string, TaskGroup>>(new Map<string, TaskGroup
                 if (dev) console.log(err);
             });
 
-            return () => {
-                unsubscribe();
-            }
+            return () => innerUnsub();
         }else{
             new Map<string, TaskGroup>();
         }
     })
-    return () => unsubscribe();
+    return () => {
+        innerUnsub();
+        unsubscribe();
+    }
 });
 
 export const groupItems = writable<ItemTaskGroup[]>([], (set) => {
@@ -143,10 +159,14 @@ export async function loadData(user: User) {
         getDocs(qTasks)
         .then((snapshot) => {
             tasks.update((ts) => {
-                snapshot.docs.forEach((obj) => {
-                    const data = obj.data() as TaskRecord;
-                    const items = data.subtasks.map((val) => {return {id: val, tid: val} as ItemTask})
-                    ts.set(obj.id, {items: items, ...data} as Task);
+                subTasks.update((subs) => {
+                    snapshot.docs.forEach((obj) => {
+                        const data = obj.data() as Task;
+                        const items = data.subtasks.map((val) => {return {id: val, tid: val} as ItemTask})
+                        subs.set(obj.id, items);
+                        ts.set(obj.id, data);
+                    })
+                    return subs;
                 })
                 return ts;
             });

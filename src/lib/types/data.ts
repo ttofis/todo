@@ -1,4 +1,4 @@
-export interface TaskRecord {
+export interface Task {
     author: string,
     completed: boolean,
     description: string,
@@ -7,10 +7,6 @@ export interface TaskRecord {
     subtasks: string[],
     task: string,
     task_group: string
-}
-
-export interface Task extends TaskRecord {
-    items: ItemTask[]
 }
 
 export interface ItemTask {

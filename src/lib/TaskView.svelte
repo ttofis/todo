@@ -3,9 +3,9 @@
     import barsIcon from '@iconify/icons-fa6-solid/bars';
     import xmarkIcon from '@iconify/icons-fa6-solid/xmark';
     import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-    import { currentUser, db, tasks } from './firebase';
+    import { currentUser, db, subTasks, tasks } from './firebase';
     import { dev } from '$app/environment';
-    import type { ItemTask, Task, TaskRecord } from './types/data';
+    import type { ItemTask, Task } from './types/data';
     import { dndzone } from 'svelte-dnd-action';
     import { modalStore, RadioGroup, RadioItem, type ModalSettings } from '@skeletonlabs/skeleton';
 
@@ -23,6 +23,7 @@
     } else {
         goBackGroup();
     }
+    let items = $subTasks.get(taskID) ?? [];
 
     async function switchChecked(taskID: string, current: boolean | undefined) {
         if (current == undefined) return;
@@ -47,7 +48,7 @@
             subtasks: [],
             task: taskName,
             task_group: task.task_group
-        } as TaskRecord)
+        } as Task)
         let tempTasksList = task.subtasks;
         tempTasksList.unshift(newTask.id);
         await updateDoc(doc(db, "tasks", taskID), {
@@ -98,19 +99,17 @@
     }
 
     function handleConsider(e: CustomEvent<DndEvent>) {
-		task.items = e.detail.items as ItemTask[];
+		items = e.detail.items as ItemTask[];
 	}
 
     async function handleFinalize(e: CustomEvent<DndEvent>) {
         if (!$currentUser) return;
-        try {
-            task.items = e.detail.items as ItemTask[];
-            await updateDoc(doc(db, "tasks", taskID), {
-                tasks: task.items.flatMap(arrayify)
-            })
-        } catch {
-            task.items = $tasks.get(taskID)?.items ?? [];
-        }
+        items = e.detail.items as ItemTask[];
+        await updateDoc(doc(db, "tasks", taskID), {
+            subtasks: items.flatMap(arrayify)
+        }).catch (() => {
+            items = $subTasks.get(taskID) ?? [];
+        })
 	}
 
     $: {
@@ -120,7 +119,9 @@
         } else {
             goBackGroup();
         }
-        console.log("DONE!")
+    }
+    $: {
+        items = $subTasks.get(taskID) ?? [];
     }
 </script>
 
@@ -141,10 +142,10 @@
 </div>
 <hr class="!border-t-2" />
 <div class="mr-1 mb-3 mt-1 overflow-hidden relative flex-grow">
-    <div use:dndzone={{items: task.items, dragDisabled: !edit, dropTargetStyle: {}}}
+    <div use:dndzone={{items: items, dragDisabled: !edit, dropTargetStyle: {}}}
     on:consider={handleConsider} on:finalize={handleFinalize}
     class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
-        {#each task.items as subtask (subtask.id)}
+        {#each items as subtask (subtask.id)}
         {@const t = $tasks.get(subtask.tid)}
         <div class:hidden={((t?.completed && show === "pending") || (!t?.completed && show === "completed"))} class="flex p-1 gap-3 w-full justify-between border-b-2 mb-1 border-surface-600">
             <div class="self-center w-auto">

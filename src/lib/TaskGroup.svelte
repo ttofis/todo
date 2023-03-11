@@ -8,7 +8,7 @@
     import { dndzone } from 'svelte-dnd-action';
     import { modalStore, RadioGroup, RadioItem, type ModalSettings } from '@skeletonlabs/skeleton';
     import { dev } from '$app/environment';
-    import type { ItemTask, TaskGroup, TaskRecord } from './types/data';
+    import type { ItemTask, Task, TaskGroup } from './types/data';
 
     export let groupID: string;
     let taskName = "";
@@ -49,7 +49,7 @@
             subtasks: [],
             task: taskName,
             task_group: groupID
-        } as TaskRecord)
+        } as Task)
         let tempGroupList = group.tasks;
         tempGroupList.unshift(newTask.id);
         await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
