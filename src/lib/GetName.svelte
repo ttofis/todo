@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { currentUser, db } from "$lib/firebase";
+    import { db, currentUser } from "$lib/firebase";
     import { doc, setDoc, addDoc, collection, updateDoc } from "firebase/firestore"; 
-    import { updatePage } from "$lib/page";
-    import { triggerToast } from "./triggerToast";
+    import { triggerToast } from "$lib/generalFunctions";
 
     let promise: Promise<void> | null;
     let name = "";
@@ -34,8 +33,6 @@
         await updateDoc(doc(db, "users", $currentUser.uid), {
             group_list: [docRef.id]
         })
-
-        updatePage($currentUser);
     }
 </script>
 

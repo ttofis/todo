@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { validateEmail } from "$lib/validateEmail";
-    import { triggerToast } from "$lib/triggerToast";
+    import { validateEmail, triggerToast } from "$lib/generalFunctions";
     import { GoogleAuthProvider, sendSignInLinkToEmail, signInWithCredential  } from "firebase/auth";
     import { auth } from "$lib/firebase";
     import { dev } from "$app/environment";
@@ -14,7 +13,7 @@
         handleCodeInApp: true
     }
 
-    function handleLogin() {
+    /*function handleLogin() {
         if (validateEmail(email)) {
             disabled = true;
             sendSignInLinkToEmail(auth, email, actionCodeSettings)
@@ -30,7 +29,7 @@
         }else{
             triggerToast("Incorrect credentials, please try again", 'variant-filled-error');
         }
-    }
+    }*/
 
     function handleCredentialResponse(response: { credential: any; }) {
         const idToken = response.credential;

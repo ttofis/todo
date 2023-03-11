@@ -12,7 +12,7 @@
 	<script src="https://accounts.google.com/gsi/client"></script>
 </svelte:head>
 
-<div class="h-screen w-screen">
+<div class="h-screen w-screen overflow-hidden">
 	<Header />
 	<slot />
 </div>

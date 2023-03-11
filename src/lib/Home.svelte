@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { currentUser, db, logout } from "$lib/firebase";
-    import { updatePage } from "$lib/page";
+    import { currentUser, db, groups, loadData, logout, tasks, userData } from "$lib/firebase";
     import { ConicGradient, type ConicStop } from "@skeletonlabs/skeleton";
     import { collection, doc, getDoc, getDocs, onSnapshot, query, where } from "firebase/firestore";
     import Icon from '@iconify/svelte';
@@ -11,11 +10,14 @@
     import { browser } from "$app/environment";
     import type { Unsubscribe } from "firebase/auth";
     import { onDestroy } from "svelte";
-    import TaskView from "./TaskView.svelte";
+    import TaskView from "$lib/TaskView.svelte";
     import penToSquare from '@iconify/icons-fa6-solid/pen-to-square';
-    import AccountSettings from "./AccountSettings.svelte";
+    import AccountSettings from "$lib/AccountSettings.svelte";
 
-    let saveName = "";
+    let saveName = $userData.name;
+    userData.subscribe((data) => {
+        if (data.name !== "") saveName = data.name;
+    })
     let view = "group";
     let preview = "group";
     let gID = "";
@@ -31,95 +33,19 @@
     else if (hour < 18) greeting = greetingTypes[1];
     else greeting = greetingTypes[2];
 
-    let gList: string[] = [];
-    let mapGroups = new Map();
-    let mapTasks = new Map();
-
-    async function getData() {
-        if (!$currentUser) return;
-        if (!browser) return;
-        const usersRef = doc(db, "users", $currentUser.uid);
-        const usersSnap = await getDoc(usersRef);
-        saveName = usersSnap.get("name");
-        
-        const taskGroupsRef = collection(db, "users", $currentUser.uid, "task_groups");
-        const taskGroupsQuery = query(taskGroupsRef);
-        const taskGroupsSnap = await getDocs(taskGroupsQuery);
-        
-        taskGroupsSnap.forEach((data) => {
-            mapGroups.set(data.id, data.data()); 
-        })
-        gList = usersSnap.get("group_list");
-        
-        const tasksRef = collection(db, "tasks");
-        const tasksQuery = query(tasksRef, where("author", "==", $currentUser.uid));
-        const tasksSnap = await getDocs(tasksQuery);
-        tasksSnap.forEach((data) => {
-            mapTasks.set(data.id, data.data()); 
-        })
-
-        if (gList.length == 1) {
-            gID = gList[0];
-        } else {
-            view = "listGroups";
-        }
-        initiateRealtime();
+    if ($userData.group_list.length == 1) {
+        gID = $userData.group_list[0];
+    } else {
+        view = "listGroups";
     }
 
-    let usersUnsubscribe: Unsubscribe;
-    let taskGroupsUnsubscribe: Unsubscribe;
-    let tasksUnsubscribe: Unsubscribe;
-
-    function initiateRealtime() {
-        if (!browser) return;
-        if (!$currentUser) return;
-        const usersRef = doc(db, "users", $currentUser.uid);
-        usersUnsubscribe = onSnapshot(usersRef, (doc) => {
-            saveName = doc.get("name");
-            gList = doc.get("group_list");
-        });
-        const taskGroupsRef = collection(db, "users", $currentUser.uid, "task_groups");
-        const taskGroupsQuery = query(taskGroupsRef);
-        taskGroupsUnsubscribe = onSnapshot(taskGroupsQuery, (doc) => {
-            doc.docChanges().forEach((change) => {
-                if (change.type === "added" || change.type === "modified") {
-                    mapGroups.set(change.doc.id, change.doc.data());
-                }
-                if (change.type === "removed") {
-                    if (gID === change.doc.id) {
-                        view = "listGroups";
-                    }
-                    gList = gList.splice(gList.indexOf(change.doc.id), 1)
-                    mapGroups.delete(change.doc.id);
-                }
-            })
-            mapGroups = mapGroups;
-        });
-        const tasksRef = collection(db, "tasks");
-        const tasksQuery = query(tasksRef, where("author", "==", $currentUser.uid));
-        tasksUnsubscribe = onSnapshot(tasksQuery, (doc) => {
-            doc.docChanges().forEach((change) => {
-                if (change.type === "added" || change.type === "modified") {
-                    mapTasks.set(change.doc.id, change.doc.data());
-                }
-                if (change.type === "removed") {
-                    if (tID === change.doc.id && view === "task") {
-                        goBackGroup();
-                    }
-                    mapTasks.delete(change.doc.id);
-                }
-            })
-            mapTasks = mapTasks;
-        })
-    }
-
-    function switchGroupList() {
+    export function switchGroupList() {
         view = "listGroups";
         edit = false;
     }
 
     function switchGroup(to: string) {
-        if (gList.indexOf(to) != -1) {
+        if ($userData.group_list.indexOf(to) != -1) {
             gID = to;
             view = "group";
         }
@@ -127,7 +53,7 @@
     }
 
     function switchTask(to: string) {
-        if (mapTasks.has(to)) {
+        if ($tasks.has(to)) {
             tID = to;
             view = "task";
         }
@@ -135,7 +61,7 @@
     }
 
     function goBackGroup() {
-        if (gList.indexOf(gID) != -1) {
+        if ($userData.group_list.indexOf(gID) != -1) {
             view = "group";
         }else{
             view = "listGroups";
@@ -154,27 +80,17 @@
         edit = !edit;
     }
 
-    if (!$currentUser) {
-        updatePage($currentUser);
-    }
-
     // Loading spinner
     const loadingSpinner: ConicStop[] = [
 		{ color: 'transparent', start: 0, end: 25 },
 		{ color: 'rgb(var(--color-secondary-500))', start: 75, end: 100 }
 	];
-
-    
-    onDestroy(() => {
-        usersUnsubscribe();
-        taskGroupsUnsubscribe();
-        tasksUnsubscribe();
-    })
 </script>
 
-<div class="h-full max-h-[800px] w-full mt-24 mb-5 flex justify-center">
+<div class="h-full max-h-[800px] w-full mt-24 mb-5 flex justify-center overflow-hidden">
 <div class="card variant-glass-surface p-4 h-full w-full max-w-md mx-5 flex flex-col">
-    {#await getData()}
+    {#if $currentUser}
+    {#await loadData($currentUser)}
         <div class="h-full flex justify-center items-center">
             <ConicGradient stops={loadingSpinner} spin width="w-12">
                 <medium>Loading</medium>
@@ -189,11 +105,11 @@
         {#if view === "group"}
             <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
                 <button on:click={() => {edit = false; view = "listGroups"}} class="justify-self-start self-center"><Icon width="20" icon={barsIcon} /></button>
-                <h3 class="text-center whitespace-nowrap truncate">{mapGroups.get(gID).name}</h3>
+                <h3 class="text-center whitespace-nowrap truncate">{$groups.get(gID)?.name}</h3>
                 <button class="justify-self-end self-center" class:text-primary-500={edit} on:click={() => {switchEdit()}}><Icon height="20" icon={penToSquare} /></button>
             </div>
             <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
-                <TaskGroup edit={edit} gList={gList} groupID={gID} tasks={mapTasks} group={mapGroups.get(gID)} switchGroupList={switchGroupList} switchTask={switchTask} />
+                <TaskGroup edit={edit} groupID={gID} switchGroupList={switchGroupList} switchTask={switchTask} />
             </div>
         {:else if view === "listGroups"}
             <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
@@ -201,7 +117,7 @@
                 <button class="justify-self-end self-center" class:text-primary-500={edit} on:click={() => {switchEdit()}}><Icon height="20" icon={penToSquare} /></button>
             </div>
             <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
-                <ListGroups edit={edit} groups={mapGroups} gList={gList} switchGroup={switchGroup} />
+                <ListGroups edit={edit} switchGroup={switchGroup} />
             </div>
         {:else if view === "task"}
             <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
@@ -210,15 +126,16 @@
                 <button class="justify-self-end self-center" class:text-primary-500={edit} on:click={() => {switchEdit()}}><Icon height="20" icon={penToSquare} /></button>
             </div>
             <div class="mt-2 card rounded-lg variant-glass-surface h-full flex flex-col">
-                <TaskView edit={edit} taskID={tID} tasks={mapTasks} />
+                <TaskView edit={edit} taskID={tID} goBackGroup={goBackGroup} />
             </div>
         {:else if view === "account"}
             <div class="grid grid-cols-3 grid-cols-[auto_1fr_auto] h-auto">
                 <button on:click={() => {view = preview}} class="justify-self-start self-center"><Icon height="18" icon={arrowTurnUp} rotate={3} /></button>
                 <h3 class="text-center whitespace-nowrap truncate">Account Settings</h3>
             </div>
-            <AccountSettings name={saveName} />
+            <AccountSettings />
         {/if}
     {/await}
+    {/if}
 </div>
 </div>

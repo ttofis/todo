@@ -4,30 +4,35 @@
     import barsIcon from '@iconify/icons-fa6-solid/bars';
     import xmarkIcon from '@iconify/icons-fa6-solid/xmark';
     import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
-    import { currentUser, db } from './firebase';
+    import { currentUser, db, tasks, groups, userData } from './firebase';
     import { dndzone } from 'svelte-dnd-action';
     import { modalStore, RadioGroup, RadioItem, type ModalSettings } from '@skeletonlabs/skeleton';
+    import { dev } from '$app/environment';
+    import type { ItemTask, TaskGroup, TaskRecord } from './types/data';
 
     export let groupID: string;
-    export let group: {
-        name: string,
-        tasks: string[]
-    };
-    export let tasks: Map<any, any>;
     let taskName = "";
     let disabled = false;
-    export let switchTask: any;
+    let cpName = "";
+    export let switchTask: (to: string) => void;
     export let edit: boolean;
-    export let switchGroupList: any;
-    export let gList: string[];
+    export let switchGroupList: () => void;
 
-    let cpName = group.name
-    let ItemList: Item[];
+    let group = $groups.get(groupID) ?? {name: "", tasks: [], items: []} as TaskGroup;
+    if (group.name === "") {
+        switchGroupList();
+    }else{
+        cpName = group.name;
+    }
     let show = "all";
 
-    async function switchChecked(task: string) {
-        await updateDoc(doc(db,"tasks",task), {
-            completed: !tasks.get(task).completed
+    async function switchChecked(taskID: string, current: boolean | undefined) {
+        if (current == undefined) return;
+        await updateDoc(doc(db,"tasks",taskID), {
+            completed: !current
+        }).catch((err) => {
+            if (dev) console.log(err);
+            return;
         })
     }
 
@@ -44,8 +49,8 @@
             subtasks: [],
             task: taskName,
             task_group: groupID
-        })
-        let tempGroupList: string[] = group.tasks;
+        } as TaskRecord)
+        let tempGroupList = group.tasks;
         tempGroupList.unshift(newTask.id);
         await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
             tasks: tempGroupList
@@ -81,7 +86,7 @@
 
     async function doDeleteGroup() {
         if (!$currentUser) return;
-        let cpGList = gList;
+        let cpGList = $userData.group_list;
         switchGroupList();
         cpGList.splice(cpGList.indexOf(groupID), 1)
         await updateDoc(doc(db, "users", $currentUser.uid), {
@@ -90,76 +95,79 @@
         for (let task of group.tasks) {
             doDeleteTask(task, false);
         }
-        await deleteDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID));
+        await deleteDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID)).catch((err) => {
+            if (dev) console.log(err);
+            return;
+        });
     }
 
-    function deleteTask(task: string) {
+    function deleteTask(taskID: string) {
+        const task = $tasks.get(taskID);
+        if (task == undefined) return;
         const confirm: ModalSettings = {
             type: 'confirm',
-            title: 'Delete Task: '+tasks.get(task).task,
+            title: 'Delete Task: '+task.task,
             body: 'Are you sure you want to delete this Task?',
-            // TRUE if confirm pressed, FALSE if cancel pressed
-            response: (r: boolean) => {if (r) doDeleteTask(task, true)},
-            // Optionally override the button text
+            response: (r: boolean) => {if (r) doDeleteTask(taskID, true)},
             buttonTextCancel: 'Cancel',
             buttonTextConfirm: 'Delete',
         };
         modalStore.trigger(confirm);
     }
 
-    async function doDeleteTask(task: string, handleList: boolean = true) {
+    async function doDeleteTask(taskID: string, handleList: boolean = true) {
         if (!$currentUser) return;
-        if (tasks.get(task).subtasks) {
-            for (let t of tasks.get(task).subtasks) {
+        const task = $tasks.get(taskID);
+        if (task == undefined) return;
+
+        if (task.subtasks) {
+            for (let t of task.subtasks) {
                 doDeleteTask(t, false);
             }
         }
         if (handleList) {
             let cpList = group.tasks;
-            cpList.splice(cpList.indexOf(task), 1)
+            cpList.splice(cpList.indexOf(taskID), 1)
             await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
                 tasks: cpList
-            })
+            }).catch((err) => {
+                if (dev) console.log(err);
+            });
         }
-        await deleteDoc(doc(db, "tasks", task));
+        await deleteDoc(doc(db, "tasks", taskID)).catch((err) => {
+            if (dev) console.log(err);
+            return;
+        });
     }
 
     // drag and drop
-
-    function itemify(value: string) {
-        return {id: value, tid: value};
-    }
 
     function arrayify(value: Item) {
         return value.tid;
     }
 
     function handleConsider(e: CustomEvent<DndEvent>) {
-		ItemList = e.detail.items;
+		group.items = e.detail.items as ItemTask[];
 	}
 
     async function handleFinalize(e: CustomEvent<DndEvent>) {
         if (!$currentUser) return;
         try {
-            ItemList = e.detail.items;
+            group.items = e.detail.items as ItemTask[];
             await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
-                tasks: ItemList.flatMap(arrayify)
+                tasks: group.items.flatMap(arrayify)
             })
         } catch {
-            ItemList = group.tasks.map(itemify);
+            group.items = $groups.get(groupID)?.items ?? [];
         }
 	}
 
-    function filterify(value: {id: string, tid: string}, show: string, edit: boolean) {
-        if (show === "all" || edit) return true;
-        if (tasks.get(value.tid).completed && show === "completed") return true;
-        if (!tasks.get(value.tid).completed && show === "pending") return true;
-        return false;
-    }
-
     $: {
-        ItemList = group.tasks.map(itemify).filter((value) => filterify(value, show, edit));
-    }
+        group = $groups.get(groupID) ?? {name: "", tasks: [], items: []} as TaskGroup;
+        if (group.name === "") {
+            switchGroupList();
+        }
+    };
 </script>
 
 <div class="p-3 flex flex-col gap-2">
@@ -186,31 +194,32 @@
 </div>
 <hr class="!border-t-2" />
 <div class="mr-1 mb-3 mt-1 overflow-hidden relative flex-grow">
-    <div use:dndzone={{items: ItemList, dragDisabled: !edit, dropTargetStyle: {}}}
+    <div use:dndzone={{items: group.items, dragDisabled: !edit, dropTargetStyle: {}}}
     on:consider={handleConsider} on:finalize={handleFinalize}
     class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
-        {#each ItemList as task (task.id)}
-        <div class="flex p-1 gap-3 w-full justify-between border-b-2 mb-1 border-surface-600">
+        {#each group.items as t (t.id)}
+        {@const task = $tasks.get(t.tid)}
+        <div class:hidden={((task?.completed && show === "pending") || (!task?.completed && show === "completed"))} class="flex p-1 gap-3 w-full justify-between border-b-2 mb-1 border-surface-600">
             <div class="self-center w-auto">
                 {#if edit}
                 <Icon class="self-center" icon={barsIcon} />
                 {:else}
-                <input disabled={edit} on:click={() => {switchChecked(task.tid)}}
-                checked={tasks.get(task.tid).completed} type="checkbox"
+                <input disabled={edit} on:click={() => {switchChecked(t.tid, task?.completed)}}
+                checked={task?.completed} type="checkbox"
                 class="rounded-full w-7 h-7 hover:brightness-[1.15] hover:bg-white checked:hover:bg-secondary-500
                 checked:bg-secondary-500 checked:focus:bg-secondary-500" />
                 {/if}
             </div>
             <div class="flex-grow min-w-0 self-center">
-                <p class="unstyled text-lg truncate">{tasks.get(task.tid).task}</p>
-                <p class="unstyled text-sm truncate">{tasks.get(task.tid).description}</p>
+                <p class="unstyled text-lg truncate">{task?.task}</p>
+                <p class="unstyled text-sm truncate">{task?.description}</p>
             </div>
             {#if edit}
-            <button on:click={() => {deleteTask(task.tid)}} class="text-error-500">
+            <button on:click={() => {deleteTask(t.tid)}} class="text-error-500">
                 <Icon class="self-center" height="20" icon={xmarkIcon} />
             </button>
             {:else}
-            <button on:click={() => {switchTask(task.tid)}} class="self-center"><Icon height="20" icon={angleRight} /></button>
+            <button on:click={() => {switchTask(t.tid)}} class="self-center"><Icon height="20" icon={angleRight} /></button>
             {/if}
         </div>
         {:else}

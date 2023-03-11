@@ -2,18 +2,17 @@
     import angleRight from '@iconify/icons-fa6-solid/angle-right';
     import Icon from '@iconify/svelte';
     import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
-    import { currentUser, db } from './firebase';
+    import { currentUser, db, groupItems, userData, groups } from './firebase';
     import { dndzone } from 'svelte-dnd-action';
     import barsIcon from '@iconify/icons-fa6-solid/bars';
+    import type { ItemTaskGroup } from './types/data';
 
-    export let groups: Map<string, any>;
-    export let gList: string[];
     let groupName = "";
     let disabled = false;
     export let switchGroup: any;
     export let edit: boolean;
 
-    let ItemList: Item[];
+    let play = $groupItems;
 
     async function createGroup() {
         if (groupName.length < 1 || groupName.length > 30) return;
@@ -23,7 +22,7 @@
             name: groupName,
             tasks: []
         })
-        let tempGroupList = gList;
+        let tempGroupList = $userData.group_list;
         tempGroupList.push(newGroup.id);
         await updateDoc(doc(db, "users", $currentUser.uid), {
             group_list: tempGroupList
@@ -43,23 +42,23 @@
     }
 
     function handleConsider(e: CustomEvent<DndEvent>) {
-		ItemList = e.detail.items;
+		play = e.detail.items as ItemTaskGroup[];
 	}
 
     async function handleFinalize(e: CustomEvent<DndEvent>) {
         if (!$currentUser) return;
         try {
-            ItemList = e.detail.items;
+            play = e.detail.items as ItemTaskGroup[];
             await updateDoc(doc(db, "users", $currentUser.uid), {
-                group_list: ItemList.flatMap(arrayify)
+                group_list: play.flatMap(arrayify)
             })
         } catch {
-            ItemList = gList.map(itemify);
+            play = $groupItems;
         }
 	}
 
     $: {
-        ItemList = gList.map(itemify);
+        play = $groupItems;
     }
 </script>
 
@@ -71,15 +70,16 @@
 </div>
 <hr class="!border-t-2" />
 <div class="mr-1 mb-3 mt-1 overflow-hidden relative flex-grow">
-    <div use:dndzone={{items: ItemList, dragDisabled: !edit, dropTargetStyle: {}}}
+    <div use:dndzone={{items: play, dragDisabled: !edit, dropTargetStyle: {}}}
     on:consider={handleConsider} on:finalize={handleFinalize}
     class="p-3 overflow-y-auto overflow-x-clip absolute inset-0 w-full">
-        {#each ItemList as group (group.id)}
+        {#each play as group (group.id)}
+        {@const g = $groups.get(group.gid)}
             <button
-            on:click={() => {if (!edit) switchGroup(group.gid)}}
+            on:click={() => {if (!edit) switchGroup(group.id)}}
             class:card-hover={!edit} class="w-full mb-1 card variant-soft-tertiary p-3 flex justify-between">
                 <div class="self-center">
-                    <h4 class="truncate text-left">{groups.get(group.gid).name}</h4>
+                    <h4 class="truncate text-left">{g?.name}</h4>
                 </div>
                 <div class="self-center flex gap-3">
                     {#if !edit}

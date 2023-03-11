@@ -1,28 +1,14 @@
-import { writable } from "svelte/store";
-import { currentUser, db } from "$lib/firebase";
-import { doc, getDoc } from "@firebase/firestore";
-import type { User } from "firebase/auth";
+import { derived } from "svelte/store";
+import { currentUser, userData } from "$lib/firebase";
 
-export const page = writable();
-
-currentUser.subscribe(async (status) => {
-    updatePage(status);
-})
-
-export async function updatePage(status: User | null) {
-    if (status) {
-        const docRef = doc(db, "users", status.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            if (docSnap.get("name") === "") {
-                page.set("getName");
-            }else{
-                page.set("home");
-            }
+export const page = derived([currentUser, userData], ([$currentUser, $userData], set) => {
+    if ($currentUser) {
+        if ($userData.name === "") {
+            set("getName");
         }else{
-            page.set("getName");
+            set("home");
         }
     }else{
-        page.set("login");
+        set("login");
     }
-}
+}, "login");

@@ -1,14 +1,14 @@
 <script lang="ts">
     import { LightSwitch } from "@skeletonlabs/skeleton";
     import { doc, updateDoc } from "firebase/firestore";
-    import { currentUser, db } from "./firebase";
+    import { currentUser, db, userData } from "$lib/firebase";
 
-    export let name:string;
+    let name = $userData.name; // userData is a derived store, thus readable, so a mutable copy is needed
     let disabled = false;
 
     async function changeName() {
         if (!$currentUser) return;
-        if (name.length < 1 || name.length > 20) return;
+        if (name.length < 1 || name.length > 20 || name === $userData.name) return;
         disabled = true;
         await updateDoc(doc(db, "users", $currentUser.uid), {
             name: name
