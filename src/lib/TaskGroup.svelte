@@ -176,7 +176,8 @@
         if (group.name === "") {
             switchGroupList();
         }
-    };
+    }
+    $: if (edit) show = "all";
 </script>
 
 <div class="p-3 flex flex-col gap-2">
@@ -211,7 +212,7 @@
         <div class:hidden={((task?.completed && show === "pending") || (!task?.completed && show === "completed"))} class="flex p-1 gap-3 w-full justify-between border-b-2 mb-1 border-surface-600">
             <div class="self-center w-auto">
                 {#if edit}
-                <Icon class="self-center" icon={barsIcon} />
+                <Icon class="self-center" icon={barsIcon} height="25" />
                 {:else}
                 <input disabled={edit} on:click={() => {switchChecked(t.tid, task?.completed)}}
                 checked={task?.completed} type="checkbox"
@@ -228,7 +229,7 @@
                 <Icon class="self-center" height="20" icon={xmarkIcon} />
             </button>
             {:else}
-            <button on:click={() => {switchTask(t.tid)}} class="self-center"><Icon height="20" icon={angleRight} /></button>
+            <button on:click={() => {switchTask(t.tid)}} class="self-center"><Icon height="25" icon={angleRight} /></button>
             {/if}
         </div>
         {:else}
