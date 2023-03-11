@@ -1,19 +1,19 @@
 <script lang="ts">
-    import { validateEmail, triggerToast } from "$lib/generalFunctions";
-    import { GoogleAuthProvider, sendSignInLinkToEmail, signInWithCredential  } from "firebase/auth";
+    import { triggerToast } from "$lib/generalFunctions";
+    import { GoogleAuthProvider, signInWithCredential, signInWithPopup  } from "firebase/auth";
     import { auth } from "$lib/firebase";
     import { dev } from "$app/environment";
     import { onMount } from "svelte";
     
-    let email = "";
-    let disabled = true;
+    //let email = "";
+    let disabled = false;
 
-    const actionCodeSettings = {
+    /*const actionCodeSettings = {
         url: "https://todo.chrisch.dev",
         handleCodeInApp: true
     }
 
-    /*function handleLogin() {
+    function handleLogin() {
         if (validateEmail(email)) {
             disabled = true;
             sendSignInLinkToEmail(auth, email, actionCodeSettings)
@@ -66,12 +66,16 @@
 		)
 	})
 
-    $: {
-        if (validateEmail(email)) {
-            disabled = false;
-        }else{
-            disabled = true;
-        }
+    const provider = new GoogleAuthProvider();
+
+    async function handleLoginGoogle() {
+        disabled = true;
+        await signInWithPopup(auth, provider)
+        .catch((err) => {
+            triggerToast("Something went wrong, please try again", 'variant-filled-warning');
+            console.log(err);
+        });
+        disabled = false;
     }
 </script>
 
@@ -80,7 +84,7 @@
     <h2>Welcome to <span class="todo">Todo</span></h2>
     <h2>the slick task app</h2>
 </div>
-<div id="buttonDiv" class="mt-3 h-auto w-full flex justify-center"></div> 
+<div id="buttonDiv" class="mt-3 h-auto w-full flex justify-center"><button type="button" disabled={disabled} class="btn variant-glass-primary" on:click={handleLoginGoogle}>Sign in with Google</button></div>
 <!--<form class="mt-2 w-full flex flex-col gap-3" on:submit|preventDefault>
     <input class="input" type="email" placeholder="email" autocomplete="email" bind:value={email} required />
     <button type="submit" disabled={disabled} class="btn variant-glass-secondary" on:click={handleLogin}>Continue</button>
