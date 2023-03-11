@@ -48,11 +48,16 @@
             subtasks: [],
             task: taskName,
             task_group: task.task_group
-        } as Task)
+        } as Task).catch((err) => {
+            if (dev) console.log(err);
+            return;
+        })
         let tempTasksList = task.subtasks;
-        tempTasksList.unshift(newTask.id);
+        tempTasksList.unshift(newTask!.id);
         await updateDoc(doc(db, "tasks", taskID), {
             subtasks: tempTasksList
+        }).catch((err) => {
+            if (dev) console.log(err);
         })
         disabled = false;
         taskName = "";

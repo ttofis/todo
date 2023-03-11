@@ -2,6 +2,7 @@
     import { LightSwitch } from "@skeletonlabs/skeleton";
     import { doc, updateDoc } from "firebase/firestore";
     import { currentUser, db, userData } from "$lib/firebase";
+    import { dev } from "$app/environment";
 
     let name = $userData.name; // userData is a derived store, thus readable, so a mutable copy is needed
     let disabled = false;
@@ -12,7 +13,9 @@
         disabled = true;
         await updateDoc(doc(db, "users", $currentUser.uid), {
             name: name
-        })
+        }).catch((err) => {
+            if (dev) console.log(err);
+        });
         disabled = false;
     }
 </script>

@@ -6,6 +6,7 @@
     import { dndzone } from 'svelte-dnd-action';
     import barsIcon from '@iconify/icons-fa6-solid/bars';
     import type { ItemTaskGroup } from './types/data';
+  import { dev } from '$app/environment';
 
     let groupName = "";
     let disabled = false;
@@ -21,21 +22,22 @@
         const newGroup = await addDoc(collection(db, "users", $currentUser.uid, "task_groups"), {
             name: groupName,
             tasks: []
-        })
+        }).catch((err) => {
+            if (dev) console.log(err);
+            return;
+        });
         let tempGroupList = $userData.group_list;
-        tempGroupList.push(newGroup.id);
+        tempGroupList.push(newGroup!.id);
         await updateDoc(doc(db, "users", $currentUser.uid), {
             group_list: tempGroupList
-        })
+        }).catch((err) => {
+            if (dev) console.log(err);
+        });
         disabled = false;
         groupName = "";
     }
 
     // drag and drop
-
-    function itemify(value: string) {
-        return {id: value, gid: value};
-    }
 
     function arrayify(value: Item) {
         return value.gid;

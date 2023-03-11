@@ -49,11 +49,16 @@
             subtasks: [],
             task: taskName,
             task_group: groupID
-        } as Task)
+        } as Task).catch((err) => {
+            if (dev) console.log(err);
+            return;
+        })
         let tempGroupList = group.tasks;
-        tempGroupList.unshift(newTask.id);
+        tempGroupList.unshift(newTask!.id);
         await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
             tasks: tempGroupList
+        }).catch((err) => {
+            if (dev) console.log(err);
         })
         disabled = false;
         taskName = "";
@@ -66,7 +71,9 @@
         disabled = true;
         await updateDoc(doc(db, "users", $currentUser.uid, "task_groups", groupID), {
             name: cpName
-        })
+        }).catch((err) => {
+            if (dev) console.log(err);
+        });
         disabled = false;
     }
 
@@ -91,7 +98,9 @@
         cpGList.splice(cpGList.indexOf(groupID), 1)
         await updateDoc(doc(db, "users", $currentUser.uid), {
             group_list: cpGList
-        })
+        }).catch((err) => {
+            if (dev) console.log(err);
+        });
         for (let task of group.tasks) {
             doDeleteTask(task, false);
         }

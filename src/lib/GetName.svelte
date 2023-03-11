@@ -2,6 +2,7 @@
     import { db, currentUser } from "$lib/firebase";
     import { doc, setDoc, addDoc, collection, updateDoc } from "firebase/firestore"; 
     import { triggerToast } from "$lib/generalFunctions";
+  import { dev } from "$app/environment";
 
     let promise: Promise<void> | null;
     let name = "";
@@ -25,14 +26,21 @@
         await setDoc(doc(db, "users", $currentUser.uid), {
             name: name,
             group_list: []
-        })
+        }).catch((err) => {
+            if (dev) console.log(err);
+            return;
+        });
         const docRef = await addDoc(collection(db, "users", $currentUser.uid, "task_groups"), {
             name: "Tasks",
             tasks: []
-        })
+        }).catch((err) => {
+            if (dev) console.log(err);
+        });
         await updateDoc(doc(db, "users", $currentUser.uid), {
-            group_list: [docRef.id]
-        })
+            group_list: [docRef!.id]
+        }).catch((err) => {
+            if (dev) console.log(err);
+        });
     }
 </script>
 
