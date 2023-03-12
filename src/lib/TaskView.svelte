@@ -118,6 +118,7 @@
 
     async function changeSubtask(tID: string, r: string) {
         if (!$currentUser) return;
+        if (!r) return;
         const task = $tasks.get(tID);
         if (task == undefined) return;
         if (r.length < 1) return;
