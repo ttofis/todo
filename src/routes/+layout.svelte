@@ -12,7 +12,7 @@
 	<!--<script src="https://accounts.google.com/gsi/client"></script>-->
 </svelte:head>
 
-<div style="height: -webkit-fill-available;" class="h-screen w-screen overflow-hidden overscroll-none">
+<div style="height: -webkit-fill-available;" class="h-screen w-screen overflow-hidden overscroll-none touch-none">
 	<Header />
 	<slot />
 </div>
