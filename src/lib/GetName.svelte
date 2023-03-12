@@ -48,7 +48,7 @@
 <h2>Welcome! Glad you joined</h2>
 <h2>How should we call you?</h2>
 <form class="mt-2 w-full max-w-md flex flex-col gap-3" on:submit|preventDefault>
-    <input class="input" type="text" placeholder="name" minlength="1" maxlength="20" bind:value={name} required />
+    <input class="input" type="text" placeholder="Name" minlength="1" maxlength="20" bind:value={name} required />
     <button disabled={disabled} class="btn variant-glass-secondary" on:click={handle}>Submit</button>
 </form>
 </div>
