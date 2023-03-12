@@ -9,7 +9,7 @@
 
 <svelte:head>
 	<title>Todo</title>
-	<script src="https://accounts.google.com/gsi/client"></script>
+	<!--<script src="https://accounts.google.com/gsi/client"></script>-->
 </svelte:head>
 
 <div class="h-screen w-screen overflow-hidden">
