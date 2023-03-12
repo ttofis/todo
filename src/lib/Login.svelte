@@ -31,7 +31,7 @@
         }
     }*/
 
-    function handleCredentialResponse(response: { credential: any; }) {
+    /*function handleCredentialResponse(response: { credential: any; }) {
         const idToken = response.credential;
         const credential = GoogleAuthProvider.credential(idToken);
 
@@ -64,7 +64,7 @@
                 width: 200
 			}
 		)
-	})
+	})*/
 
     const provider = new GoogleAuthProvider();
 
@@ -84,9 +84,9 @@
     <h2>Welcome to <span class="todo">Todo</span></h2>
     <h2>the slick task app</h2>
 </div>
-<div id="buttonDiv" class="mt-3 h-auto w-full flex justify-center">
-    <button type="button" disabled={disabled} class="btn variant-glass-primary" on:click={handleLoginGoogle}>Sign in with Google</button>
-</div>
+<!--<div id="buttonDiv" class="mt-3 h-auto w-full flex justify-center">-->
+    <button type="button" disabled={disabled} class="btn variant-glass-primary mt-3" on:click={handleLoginGoogle}>Sign in with Google</button>
+<!--</div>-->
 <!--<form class="mt-2 w-full flex flex-col gap-3" on:submit|preventDefault>
     <input class="input" type="email" placeholder="email" autocomplete="email" bind:value={email} required />
     <button type="submit" disabled={disabled} class="btn variant-glass-secondary" on:click={handleLogin}>Continue</button>
